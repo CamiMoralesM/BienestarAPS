@@ -61,7 +61,7 @@ class ExcelProcessor {
                 result.summary = this.processSummarySheet(workbook.Sheets['CUPONES DISPONIBLES']);
             }
 
-            console.log('Datos procesados:', {
+            console.log('📊 Datos procesados:', {
                 affiliates: result.affiliates.length,
                 transactions: result.transactions.length,
                 sheets: result.sheetNames
@@ -311,27 +311,4 @@ class ExcelProcessor {
 // Integración con el sistema principal
 if (typeof window !== 'undefined') {
     window.ExcelProcessor = ExcelProcessor;
-    
-    // Extender el GasSystemManager para usar el procesador real
-    if (window.gasSystem) {
-        const originalReadExcelFile = window.gasSystem.readExcelFile;
-        
-        window.gasSystem.readExcelFile = async function(file) {
-            const processor = new ExcelProcessor();
-            const processedData = await processor.processExcelFile(file);
-            return processedData;
-        };
-        
-        window.gasSystem.processExcelData = function(data) {
-            this.affiliatesData = data.affiliates || [];
-            this.transactionsData = data.transactions || [];
-            this.summaryData = data.summary || {};
-            
-            console.log('Datos Excel procesados:', {
-                afiliados: this.affiliatesData.length,
-                transacciones: this.transactionsData.length,
-                resumen: this.summaryData
-            });
-        };
-    }
 }
