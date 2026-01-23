@@ -70,7 +70,6 @@ class HealthGasSystemManager {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') this.closeAdminModal();
         });
-
         document.getElementById('adminLoginModal').addEventListener('click', (e) => {
             if (e.target.id === 'adminLoginModal') this.closeAdminModal();
         });
@@ -79,7 +78,6 @@ class HealthGasSystemManager {
     // ========================================
     // AUTHENTICATION METHODS
     // ========================================
-
     async handleLogin() {
         const email = document.getElementById('adminEmail').value;
         const password = document.getElementById('adminPassword').value;
@@ -91,7 +89,6 @@ class HealthGasSystemManager {
         }
 
         this.showLoading(true);
-        
         try {
             await window.signInWithEmailAndPassword(window.firebaseAuth, email, password);
             this.hideError(errorDiv);
@@ -99,7 +96,6 @@ class HealthGasSystemManager {
         } catch (error) {
             console.error('Error de autenticación:', error);
             let errorMessage = 'Error de autenticación';
-            
             switch (error.code) {
                 case 'auth/user-not-found':
                 case 'auth/wrong-password':
@@ -115,10 +111,8 @@ class HealthGasSystemManager {
                 default:
                     errorMessage = '❌ Error de autenticación. Intente nuevamente';
             }
-            
             this.showError(errorDiv, errorMessage);
         }
-        
         this.showLoading(false);
     }
 
@@ -174,28 +168,23 @@ class HealthGasSystemManager {
         }
 
         this.showLoading(true);
-
         try {
             // Re-authenticate first
             const user = window.firebaseAuth.currentUser;
             const email = user.email;
-            
             await window.signInWithEmailAndPassword(window.firebaseAuth, email, currentPassword);
-            
+
             // Update password
             await window.updatePassword(user, newPassword);
-            
+
             this.showSuccess(successDiv, '✅ Contraseña actualizada exitosamente');
-            
             setTimeout(() => {
                 this.hideChangePasswordForm();
                 this.showAlert('🔑 Contraseña actualizada correctamente', 'success');
             }, 2000);
-            
         } catch (error) {
             console.error('Error al cambiar contraseña:', error);
             let errorMessage = 'Error al cambiar contraseña';
-            
             switch (error.code) {
                 case 'auth/wrong-password':
                 case 'auth/invalid-credential':
@@ -210,10 +199,8 @@ class HealthGasSystemManager {
                 default:
                     errorMessage = '❌ Error al actualizar contraseña. Intente nuevamente';
             }
-            
             this.showError(errorDiv, errorMessage);
         }
-        
         this.showLoading(false);
     }
 
@@ -233,7 +220,6 @@ class HealthGasSystemManager {
     openAdminModal() {
         document.getElementById('adminLoginModal').style.display = 'block';
         document.body.style.overflow = 'hidden';
-        
         if (this.currentUser) {
             this.showAdminPanel();
         } else {
@@ -252,7 +238,6 @@ class HealthGasSystemManager {
     // ========================================
     // RUT VALIDATION AND FORMATTING
     // ========================================
-
     formatRUT(e) {
         let value = e.target.value.replace(/[^0-9kK]/g, '');
         if (value.length > 1) {
@@ -266,38 +251,33 @@ class HealthGasSystemManager {
     validateRUT(rut) {
         const cleanRUT = rut.replace(/[.-]/g, '');
         if (cleanRUT.length < 8) return false;
-        
+
         const rutNumber = cleanRUT.slice(0, -1);
         const dv = cleanRUT.slice(-1).toLowerCase();
-        
+
         let sum = 0;
         let multiplier = 2;
-        
         for (let i = rutNumber.length - 1; i >= 0; i--) {
             sum += parseInt(rutNumber[i]) * multiplier;
             multiplier = multiplier === 7 ? 2 : multiplier + 1;
         }
-        
+
         const remainder = sum % 11;
         const calculatedDV = remainder === 0 ? '0' : remainder === 1 ? 'k' : (11 - remainder).toString();
-        
         return dv === calculatedDV;
     }
 
     normalizeRUT(rut) {
         const cleanRUT = rut.replace(/[.-\s]/g, '');
         if (cleanRUT.length < 8) return rut;
-        
         const rutNumber = cleanRUT.slice(0, -1);
         const dv = cleanRUT.slice(-1).toUpperCase();
-        
         return rutNumber + '-' + dv;
     }
 
     // ========================================
     // COUPON SEARCH
     // ========================================
-
     async searchCoupons() {
         const rutInput = document.getElementById('rutInput');
         const rut = rutInput.value.trim();
@@ -320,11 +300,10 @@ class HealthGasSystemManager {
         }
 
         this.showLoading(true);
-
         try {
             const normalizedRUT = this.normalizeRUT(rut);
             const userInfo = this.findUserInfo(normalizedRUT);
-            
+
             if (!userInfo) {
                 this.showAlert('🔍 RUT no encontrado en la base de datos de afiliados', 'error');
                 this.showLoading(false);
@@ -332,121 +311,120 @@ class HealthGasSystemManager {
             }
 
             const couponsInfo = this.calculateCouponsInfo(normalizedRUT);
-            this.displayResults(userInfo, coupons) {
-    const resultsSection = document.getElementById('resultsSection');
-    const resultsContent = document.getElementById('resultsContent');
+            this.displayResults(userInfo, couponsInfo);
+            this.showLoading(false);
+        } catch (error) {
+            console.error('Error al buscar cupones:', error);
+            this.showAlert('❌ Error al procesar la búsqueda. Verifique los datos cargados', 'error');
+            this.showLoading(false);
+        }
+    }
 
-    resultsContent.innerHTML = `
-        <h3>Información de Cupones</h3>
-
-        <div class="user-info">
-            <strong>${userInfo.nombres} ${userInfo.apellidos}</strong><br>
-            RUT: ${userInfo.rut}<br>
-            ${userInfo.establecimiento || ''}
-        </div>
-
-        <table class="coupon-table">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th>5 Kg</th>
-                    <th>11 Kg</th>
-                    <th>15 Kg</th>
-                    <th>45 Kg</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><strong>Lipigas</strong></td>
-                    <td>${coupons.lipigas[5]}</td>
-                    <td>${coupons.lipigas[11]}</td>
-                    <td>${coupons.lipigas[15]}</td>
-                    <td>${coupons.lipigas[45]}</td>
-                </tr>
-                <tr>
-                    <td><strong>Abastible</strong></td>
-                    <td>${coupons.abastible[5]}</td>
-                    <td>${coupons.abastible[11]}</td>
-                    <td>${coupons.abastible[15]}</td>
-                    <td>${coupons.abastible[45]}</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <div class="coupon-summary">
-            <div><strong>Usado en el mes:</strong> ${coupons.usados}</div>
-            <div><strong>Disponible:</strong> ${coupons.disponibles}</div>
-        </div>
-    `;
-
-    resultsSection.style.display = 'block';
-    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-
-calculateCouponsInfo(rut) {
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-
-    const result = {
-        lipigas: { 5: 0, 11: 0, 15: 0, 45: 0 },
-        abastible: { 5: 0, 11: 0, 15: 0, 45: 0 },
-        usados: 0,
-        disponibles: 4
-    };
-
-    const monthlyTransactions = this.transactionsData.filter(t => {
-        if (!t.fecha) return false;
-        const d = new Date(t.fecha);
-        return (
-            d.getMonth() === currentMonth &&
-            d.getFullYear() === currentYear &&
-            this.normalizeRUT(t.rutAfiliado) === rut
+    findUserInfo(rut) {
+        return this.affiliatesData.find(affiliate =>
+            affiliate.rut && this.normalizeRUT(affiliate.rut) === rut
         );
-    });
+    }
 
-    monthlyTransactions.forEach(t => {
-        const concepto = (t.concepto || '').toLowerCase();
+    calculateCouponsInfo(rut) {
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
 
-        if (concepto.includes('lipigas')) {
-            result.lipigas[5]  += Number(t['05 KILOS']) || 0;
-            result.lipigas[11] += Number(t['11 KILOS']) || 0;
-            result.lipigas[15] += Number(t['15 KILOS']) || 0;
-            result.lipigas[45] += Number(t['45 KILOS']) || 0;
-        }
+        const result = {
+            lipigas: { 5: 0, 11: 0, 15: 0, 45: 0 },
+            abastible: { 5: 0, 11: 0, 15: 0, 45: 0 },
+            usados: 0,
+            disponibles: 4
+        };
 
-        if (concepto.includes('abastible')) {
-            result.abastible[5]  += Number(t['05 KILOS']) || 0;
-            result.abastible[11] += Number(t['11 KILOS']) || 0;
-            result.abastible[15] += Number(t['15 KILOS']) || 0;
-            result.abastible[45] += Number(t['45 KILOS']) || 0;
-        }
-    });
+        const monthlyTransactions = this.transactionsData.filter(t => {
+            if (!t.fecha) return false;
+            const d = new Date(t.fecha);
+            return (
+                d.getMonth() === currentMonth &&
+                d.getFullYear() === currentYear &&
+                this.normalizeRUT(t.rutAfiliado) === rut
+            );
+        });
 
-    result.usados = monthlyTransactions.length;
-    result.disponibles = Math.max(0, 4 - result.usados);
+        monthlyTransactions.forEach(t => {
+            const concepto = (t.concepto || '').toLowerCase();
 
-    return result;
-}
+            if (concepto.includes('lipigas')) {
+                result.lipigas[5] += Number(t['05 KILOS']) || 0;
+                result.lipigas[11] += Number(t['11 KILOS']) || 0;
+                result.lipigas[15] += Number(t['15 KILOS']) || 0;
+                result.lipigas[45] += Number(t['45 KILOS']) || 0;
+            }
 
-    renderCylinderInfo(weight, used, available) {
-        return `
-            <div class="cylinder-info">
-                <div class="cylinder-weight">${weight} KG</div>
-                <div class="cylinder-used">
-                    Usados: ${used}
-                </div>
-                <div class="cylinder-available">
-                    Disponibles: ${available}
-                </div>
+            if (concepto.includes('abastible')) {
+                result.abastible[5] += Number(t['05 KILOS']) || 0;
+                result.abastible[11] += Number(t['11 KILOS']) || 0;
+                result.abastible[15] += Number(t['15 KILOS']) || 0;
+                result.abastible[45] += Number(t['45 KILOS']) || 0;
+            }
+        });
+
+        result.usados = monthlyTransactions.length;
+        result.disponibles = Math.max(0, 4 - result.usados);
+
+        return result;
+    }
+
+    displayResults(userInfo, coupons) {
+        const resultsSection = document.getElementById('resultsSection');
+        const resultsContent = document.getElementById('resultsContent');
+
+        resultsContent.innerHTML = `
+            <h3>Información de Cupones</h3>
+
+            <div class="user-info">
+                <strong>${userInfo.nombres} ${userInfo.apellidos}</strong><br>
+                RUT: ${userInfo.rut}<br>
+                ${userInfo.establecimiento || ''}
+            </div>
+
+            <table class="coupon-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>5 Kg</th>
+                        <th>11 Kg</th>
+                        <th>15 Kg</th>
+                        <th>45 Kg</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Lipigas</strong></td>
+                        <td>${coupons.lipigas[5]}</td>
+                        <td>${coupons.lipigas[11]}</td>
+                        <td>${coupons.lipigas[15]}</td>
+                        <td>${coupons.lipigas[45]}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Abastible</strong></td>
+                        <td>${coupons.abastible[5]}</td>
+                        <td>${coupons.abastible[11]}</td>
+                        <td>${coupons.abastible[15]}</td>
+                        <td>${coupons.abastible[45]}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="coupon-summary">
+                <div><strong>Usado en el mes:</strong> ${coupons.usados}</div>
+                <div><strong>Disponible:</strong> ${coupons.disponibles}</div>
             </div>
         `;
+
+        resultsSection.style.display = 'block';
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     // ========================================
     // FILE MANAGEMENT (requires authentication)
     // ========================================
-
     handleFileSelect(e) {
         if (!this.currentUser) {
             this.showAlert('🔐 Debe estar autenticado para subir archivos', 'error');
@@ -455,7 +433,7 @@ calculateCouponsInfo(rut) {
 
         const file = e.target.files[0];
         const uploadBtn = document.getElementById('uploadBtn');
-        
+
         if (file && file.name.match(/\.(xlsx|xls)$/)) {
             uploadBtn.disabled = false;
             this.selectedFile = file;
@@ -481,10 +459,8 @@ calculateCouponsInfo(rut) {
         }
 
         this.showLoading(true);
-
         try {
             const data = await this.readExcelFile(this.selectedFile);
-            
             if (data) {
                 const fileData = {
                     name: this.selectedFile.name,
@@ -492,14 +468,11 @@ calculateCouponsInfo(rut) {
                     uploadedBy: this.currentUser.email,
                     data: data
                 };
-                
                 localStorage.setItem('gasSystemData', JSON.stringify(fileData));
                 this.currentData = data;
                 this.processExcelData(data);
-                
                 this.updateFilesList();
                 this.showAlert('✅ Archivo subido y procesado exitosamente', 'success');
-                
                 document.getElementById('excelFile').value = '';
                 document.getElementById('uploadBtn').disabled = true;
                 this.selectedFile = null;
@@ -508,33 +481,27 @@ calculateCouponsInfo(rut) {
             console.error('Error al procesar archivo:', error);
             this.showAlert('❌ Error al procesar el archivo. Verifique que sea un archivo Excel válido', 'error');
         }
-
         this.showLoading(false);
     }
 
     async readExcelFile(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            
             reader.onload = (e) => {
                 try {
                     if (typeof XLSX === 'undefined') {
                         reject(new Error('Librería XLSX no disponible. Intente recargar la página.'));
                         return;
                     }
-
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-                    
                     const processedData = this.extractDataFromWorkbook(workbook);
                     resolve(processedData);
-                    
                 } catch (error) {
                     console.error('Error procesando Excel:', error);
                     reject(error);
                 }
             };
-            
             reader.onerror = () => reject(new Error('Error al leer el archivo'));
             reader.readAsArrayBuffer(file);
         });
@@ -543,7 +510,6 @@ calculateCouponsInfo(rut) {
     // ========================================
     // EXCEL DATA PROCESSING
     // ========================================
-
     extractDataFromWorkbook(workbook) {
         const result = {
             affiliates: [],
@@ -556,17 +522,14 @@ calculateCouponsInfo(rut) {
             if (workbook.Sheets['BASE DE DATOS']) {
                 result.affiliates = this.processAffiliatesSheet(workbook.Sheets['BASE DE DATOS']);
             }
-
             if (workbook.Sheets['GENERAL']) {
                 result.transactions = this.processTransactionsSheet(workbook.Sheets['GENERAL']);
             }
-
             console.log('📊 Datos procesados:', {
                 affiliates: result.affiliates.length,
                 transactions: result.transactions.length,
                 sheets: result.sheetNames
             });
-
         } catch (error) {
             console.error('Error extrayendo datos:', error);
             throw error;
@@ -578,7 +541,7 @@ calculateCouponsInfo(rut) {
     processAffiliatesSheet(sheet) {
         const affiliates = [];
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
-        
+
         let headerRowIndex = -1;
         for (let i = 0; i < Math.min(10, jsonData.length); i++) {
             const row = jsonData[i];
@@ -591,7 +554,6 @@ calculateCouponsInfo(rut) {
         if (headerRowIndex === -1) return affiliates;
 
         const headers = jsonData[headerRowIndex];
-        
         const columnMap = {
             rut: this.findColumnIndex(headers, ['RUT']),
             nombres: this.findColumnIndex(headers, ['NOMBRES', 'NOMBRE']),
@@ -621,7 +583,7 @@ calculateCouponsInfo(rut) {
     processTransactionsSheet(sheet) {
         const transactions = [];
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
-        
+
         let headerRowIndex = -1;
         for (let i = 0; i < Math.min(10, jsonData.length); i++) {
             const row = jsonData[i];
@@ -634,7 +596,6 @@ calculateCouponsInfo(rut) {
         if (headerRowIndex === -1) return transactions;
 
         const headers = jsonData[headerRowIndex];
-        
         const columnMap = {
             fecha: this.findColumnIndex(headers, ['FECHA']),
             rutAfiliado: this.findColumnIndex(headers, ['RUT AFILIADO']),
@@ -674,10 +635,9 @@ calculateCouponsInfo(rut) {
     // ========================================
     // UTILITY METHODS
     // ========================================
-
     findColumnIndex(headers, searchTerms) {
         for (const term of searchTerms) {
-            const index = headers.findIndex(header => 
+            const index = headers.findIndex(header =>
                 header && header.toString().toUpperCase().includes(term.toUpperCase())
             );
             if (index >= 0) return index;
@@ -697,13 +657,13 @@ calculateCouponsInfo(rut) {
     parseDate(dateValue) {
         if (!dateValue) return null;
         if (dateValue instanceof Date) return dateValue;
-        
+
         const dateStr = dateValue.toString();
         if (!isNaN(dateStr) && dateStr.length > 5) {
             const excelDate = new Date((parseFloat(dateStr) - 25569) * 86400 * 1000);
             if (excelDate.getFullYear() > 1900) return excelDate;
         }
-        
+
         const parsed = new Date(dateStr);
         return isNaN(parsed.getTime()) ? null : parsed;
     }
@@ -719,7 +679,6 @@ calculateCouponsInfo(rut) {
             this.affiliatesData = data.affiliates;
             this.transactionsData = data.transactions;
             this.summaryData = data.summary || {};
-            
             console.log('📊 Datos reales del Excel procesados:', {
                 afiliados: this.affiliatesData.length,
                 transacciones: this.transactionsData.length,
@@ -797,7 +756,7 @@ calculateCouponsInfo(rut) {
                 const fileData = JSON.parse(storedData);
                 const uploadDate = new Date(fileData.uploadDate).toLocaleDateString('es-CL');
                 const uploadTime = new Date(fileData.uploadDate).toLocaleTimeString('es-CL');
-                
+
                 filesList.innerHTML = `
                     <div class="file-item">
                         <div>
@@ -831,7 +790,6 @@ calculateCouponsInfo(rut) {
             this.transactionsData = [];
             this.updateFilesList();
             this.showAlert('✅ Archivo eliminado exitosamente', 'success');
-            
             document.getElementById('resultsSection').style.display = 'none';
         }
     }
@@ -839,7 +797,6 @@ calculateCouponsInfo(rut) {
     // ========================================
     // UI UTILITY METHODS
     // ========================================
-
     showLoading(show) {
         const overlay = document.getElementById('loadingOverlay');
         overlay.style.display = show ? 'block' : 'none';
@@ -889,7 +846,6 @@ calculateCouponsInfo(rut) {
 // ========================================
 // GLOBAL FUNCTIONS
 // ========================================
-
 function closeAdminModal() {
     healthGasSystem.closeAdminModal();
 }
@@ -897,16 +853,12 @@ function closeAdminModal() {
 // ========================================
 // INITIALIZE SYSTEM
 // ========================================
-
 let healthGasSystem;
-
 document.addEventListener('DOMContentLoaded', function() {
     healthGasSystem = new HealthGasSystemManager();
-    
     setTimeout(() => {
         document.body.classList.add('loaded');
     }, 100);
-    
     console.log('🏥 Sistema de Cupones de Gas - Bienestar APS inicializado correctamente');
     console.log('📧 Admin: Bienestar.aps@cmpuentealto.cl');
     console.log('🔑 Password: 20BAPS25 (cambiar desde el panel)');
