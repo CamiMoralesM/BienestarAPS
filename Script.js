@@ -348,141 +348,50 @@ class HealthGasSystemManager {
         );
     }
 
-    calculateCouponsInfo(rut) {
-        const currentMonth = new Date().getMonth() + 1;
-        const currentYear = new Date().getFullYear();
+calculateCouponsInfo(rut) {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
 
-        // Filter current month transactions
-        const monthlyTransactions = this.transactionsData.filter(transaction => {
-            if (!transaction.fecha) return false;
-            const transactionDate = new Date(transaction.fecha);
-            return transactionDate.getMonth() + 1 === currentMonth && 
-                   transactionDate.getFullYear() === currentYear &&
-                   transaction.rutAfiliado && this.normalizeRUT(transaction.rutAfiliado) === rut;
-        });
+    const result = {
+        lipigas: { 5: 0, 11: 0, 15: 0, 45: 0 },
+        abastible: { 5: 0, 11: 0, 15: 0, 45: 0 },
+        usados: 0,
+        disponibles: 4
+    };
 
-        // Group by gas type and cylinder
-        const couponsUsed = {
-            lipigas: { '5': 0, '11': 0, '15': 0, '45': 0 },
-            abastible: { '5': 0, '11': 0, '15': 0, '45': 0 }
-        };
+    const monthlyTransactions = this.transactionsData.filter(t => {
+        if (!t.fecha) return false;
+        const d = new Date(t.fecha);
+        return (
+            d.getMonth() === currentMonth &&
+            d.getFullYear() === currentYear &&
+            this.normalizeRUT(t.rutAfiliado) === rut
+        );
+    });
 
-        monthlyTransactions.forEach(transaction => {
-            const gasType = transaction.concepto ? transaction.concepto.toLowerCase() : '';
-            
-            if (gasType.includes('lipigas')) {
-                couponsUsed.lipigas['5'] += parseInt(transaction['05 KILOS']) || 0;
-                couponsUsed.lipigas['11'] += parseInt(transaction['11 KILOS']) || 0;
-                couponsUsed.lipigas['15'] += parseInt(transaction['15 KILOS']) || 0;
-                couponsUsed.lipigas['45'] += parseInt(transaction['45 KILOS']) || 0;
-            } else if (gasType.includes('abastible')) {
-                const abastible5 = transaction['05 KILOS.1'] !== undefined ? 
-                                  transaction['05 KILOS.1'] : transaction['05 KILOS'];
-                const abastible11 = transaction['11 KILOS.1'] !== undefined ? 
-                                   transaction['11 KILOS.1'] : transaction['11 KILOS'];  
-                const abastible15 = transaction['15 KILOS.1'] !== undefined ? 
-                                   transaction['15 KILOS.1'] : transaction['15 KILOS'];
-                const abastible45 = transaction['45 KILOS.1'] !== undefined ? 
-                                   transaction['45 KILOS.1'] : transaction['45 KILOS'];
-                
-                couponsUsed.abastible['5'] += parseInt(abastible5) || 0;
-                couponsUsed.abastible['11'] += parseInt(abastible11) || 0;
-                couponsUsed.abastible['15'] += parseInt(abastible15) || 0;
-                couponsUsed.abastible['45'] += parseInt(abastible45) || 0;
-            }
-        });
+    monthlyTransactions.forEach(t => {
+        const concepto = (t.concepto || '').toLowerCase();
 
-        // Monthly limits
-        const monthlyLimits = {
-            lipigas: { '5': 4, '11': 3, '15': 2, '45': 1 },
-            abastible: { '5': 4, '11': 3, '15': 2, '45': 1 }
-        };
-
-        // Calculate available
-        const couponsAvailable = {
-            lipigas: {},
-            abastible: {}
-        };
-
-        for (const gasType of ['lipigas', 'abastible']) {
-            for (const size of ['5', '11', '15', '45']) {
-                couponsAvailable[gasType][size] = Math.max(0, 
-                    monthlyLimits[gasType][size] - couponsUsed[gasType][size]
-                );
-            }
+        if (concepto.includes('lipigas')) {
+            result.lipigas[5]  += Number(t['05 KILOS']) || 0;
+            result.lipigas[11] += Number(t['11 KILOS']) || 0;
+            result.lipigas[15] += Number(t['15 KILOS']) || 0;
+            result.lipigas[45] += Number(t['45 KILOS']) || 0;
         }
 
-        return {
-            used: couponsUsed,
-            available: couponsAvailable,
-            totalUsedThisMonth: monthlyTransactions.length,
-            lastTransaction: monthlyTransactions.length > 0 ? 
-                monthlyTransactions[monthlyTransactions.length - 1].fecha : null
-        };
-    }
+        if (concepto.includes('abastible')) {
+            result.abastible[5]  += Number(t['05 KILOS']) || 0;
+            result.abastible[11] += Number(t['11 KILOS']) || 0;
+            result.abastible[15] += Number(t['15 KILOS']) || 0;
+            result.abastible[45] += Number(t['45 KILOS']) || 0;
+        }
+    });
 
-    displayResults(userInfo, couponsInfo) {
-        const resultsSection = document.getElementById('resultsSection');
-        const resultsContent = document.getElementById('resultsContent');
+    result.usados = monthlyTransactions.length;
+    result.disponibles = Math.max(0, 4 - result.usados);
 
-        const html = `
-            <div class="user-info">
-                <div class="user-name">${userInfo.nombres} ${userInfo.apellidos}</div>
-                <div class="user-details">
-                    <div class="user-detail">
-                        <span class="detail-label">RUT:</span>
-                        <span class="detail-value">${userInfo.rut}</span>
-                    </div>
-                    <div class="user-detail">
-                        <span class="detail-label">Centro de Salud:</span>
-                        <span class="detail-value">${userInfo.establecimiento || 'No especificado'}</span>
-                    </div>
-                    <div class="user-detail">
-                        <span class="detail-label">Cupones usados este mes:</span>
-                        <span class="detail-value">${couponsInfo.totalUsedThisMonth}</span>
-                    </div>
-                    ${couponsInfo.lastTransaction ? `
-                    <div class="user-detail">
-                        <span class="detail-label">Última transacción:</span>
-                        <span class="detail-value">${new Date(couponsInfo.lastTransaction).toLocaleDateString('es-CL')}</span>
-                    </div>
-                    ` : ''}
-                </div>
-            </div>
-
-            <div class="gas-types-grid">
-                <div class="gas-type-card lipigas">
-                    <div class="gas-type-header">
-                        <span class="gas-type-icon">⛽</span>
-                        <span class="gas-type-name">LIPIGAS</span>
-                    </div>
-                    <div class="cylinders-grid">
-                        ${this.renderCylinderInfo('5', couponsInfo.used.lipigas['5'], couponsInfo.available.lipigas['5'])}
-                        ${this.renderCylinderInfo('11', couponsInfo.used.lipigas['11'], couponsInfo.available.lipigas['11'])}
-                        ${this.renderCylinderInfo('15', couponsInfo.used.lipigas['15'], couponsInfo.available.lipigas['15'])}
-                        ${this.renderCylinderInfo('45', couponsInfo.used.lipigas['45'], couponsInfo.available.lipigas['45'])}
-                    </div>
-                </div>
-
-                <div class="gas-type-card abastible">
-                    <div class="gas-type-header">
-                        <span class="gas-type-icon">🔥</span>
-                        <span class="gas-type-name">ABASTIBLE</span>
-                    </div>
-                    <div class="cylinders-grid">
-                        ${this.renderCylinderInfo('5', couponsInfo.used.abastible['5'], couponsInfo.available.abastible['5'])}
-                        ${this.renderCylinderInfo('11', couponsInfo.used.abastible['11'], couponsInfo.available.abastible['11'])}
-                        ${this.renderCylinderInfo('15', couponsInfo.used.abastible['15'], couponsInfo.available.abastible['15'])}
-                        ${this.renderCylinderInfo('45', couponsInfo.used.abastible['45'], couponsInfo.available.abastible['45'])}
-                    </div>
-                </div>
-            </div>
-        `;
-
-        resultsContent.innerHTML = html;
-        resultsSection.style.display = 'block';
-        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    return result;
+}
 
     renderCylinderInfo(weight, used, available) {
         return `
