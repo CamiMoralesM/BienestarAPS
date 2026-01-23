@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="Styles.css">
+    <link rel="stylesheet" href="styles.css">
     
     <!-- Firebase SDK -->
     <script type="module">
@@ -52,22 +52,7 @@
             </div>
         </div>
     </header>
-        <!-- Instructions Section -->
-        <section class="instructions-section">
-            <div class="instructions-card">
-                <h3 class="instructions-title">Instrucciones de Uso</h3>
-                <div class="instructions-grid">
-                    <div class="instruction-item">
-                        <div class="instruction-number">1</div>
-                        <div class="instruction-content">
-                            <h4>Formato Correcto</h4>
-                            <p>Si su RUT es menor a 10 millones, anteponga un 0</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
+
     <!-- Main Container -->
     <main class="main-container">
         <!-- Search Section -->
@@ -114,6 +99,20 @@
                         <div class="instruction-content">
                             <h4>Formato Correcto</h4>
                             <p>Si su RUT es menor a 10 millones, anteponga un 0</p>
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">2</div>
+                        <div class="instruction-content">
+                            <h4>Ingrese el RUT</h4>
+                            <p>Escriba su RUT en el formato XXXXXXXX-X</p>
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">3</div>
+                        <div class="instruction-content">
+                            <h4>Ver Disponibilidad</h4>
+                            <p>El sistema mostrará sus cupones disponibles por tipo y tamaño</p>
                         </div>
                     </div>
                 </div>
@@ -243,7 +242,7 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="Script.js"></script>
+    <script src="excel-processor.js"></script>
+    <script src="script.js"></script>
 </body>
-</html>
 </html>
