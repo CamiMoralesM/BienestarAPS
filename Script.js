@@ -332,21 +332,57 @@ class HealthGasSystemManager {
             }
 
             const couponsInfo = this.calculateCouponsInfo(normalizedRUT);
-            this.displayResults(userInfo, couponsInfo);
-            this.showLoading(false);
-            
-        } catch (error) {
-            console.error('Error al buscar cupones:', error);
-            this.showAlert('❌ Error al procesar la búsqueda. Verifique los datos cargados', 'error');
-            this.showLoading(false);
-        }
-    }
+            this.displayResults(userInfo, coupons) {
+    const resultsSection = document.getElementById('resultsSection');
+    const resultsContent = document.getElementById('resultsContent');
 
-    findUserInfo(rut) {
-        return this.affiliatesData.find(affiliate => 
-            affiliate.rut && this.normalizeRUT(affiliate.rut) === rut
-        );
-    }
+    resultsContent.innerHTML = `
+        <h3>Información de Cupones</h3>
+
+        <div class="user-info">
+            <strong>${userInfo.nombres} ${userInfo.apellidos}</strong><br>
+            RUT: ${userInfo.rut}<br>
+            ${userInfo.establecimiento || ''}
+        </div>
+
+        <table class="coupon-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>5 Kg</th>
+                    <th>11 Kg</th>
+                    <th>15 Kg</th>
+                    <th>45 Kg</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Lipigas</strong></td>
+                    <td>${coupons.lipigas[5]}</td>
+                    <td>${coupons.lipigas[11]}</td>
+                    <td>${coupons.lipigas[15]}</td>
+                    <td>${coupons.lipigas[45]}</td>
+                </tr>
+                <tr>
+                    <td><strong>Abastible</strong></td>
+                    <td>${coupons.abastible[5]}</td>
+                    <td>${coupons.abastible[11]}</td>
+                    <td>${coupons.abastible[15]}</td>
+                    <td>${coupons.abastible[45]}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="coupon-summary">
+            <div><strong>Usado en el mes:</strong> ${coupons.usados}</div>
+            <div><strong>Disponible:</strong> ${coupons.disponibles}</div>
+        </div>
+    `;
+
+    resultsSection.style.display = 'block';
+    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 
 calculateCouponsInfo(rut) {
     const currentMonth = new Date().getMonth();
