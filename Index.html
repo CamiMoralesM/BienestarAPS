@@ -1,1 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Cupones de Gas - Abastible & Lipigas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Nunito+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <h1 class="main-title">
+                    <span class="title-gas">GAS</span>
+                    <span class="title-system">SYSTEM</span>
+                </h1>
+                <p class="subtitle">Control de Cupones Abastible & Lipigas</p>
+            </div>
+            <div class="admin-section">
+                <button id="adminBtn" class="admin-btn">
+                    <span class="admin-icon">⚙</span>
+                    Acceso Administrativo
+                </button>
+            </div>
+        </div>
+    </header>
 
+    <!-- Main Container -->
+    <main class="main-container">
+        <!-- Search Section -->
+        <section class="search-section">
+            <div class="search-card">
+                <h2 class="section-title">Consultar Cupones Disponibles</h2>
+                <div class="search-form">
+                    <div class="input-group">
+                        <label for="rutInput" class="input-label">RUT del Afiliado</label>
+                        <input 
+                            type="text" 
+                            id="rutInput" 
+                            placeholder="Ej: 12345678-9"
+                            class="rut-input"
+                            maxlength="12"
+                        >
+                        <small class="input-hint">Formato: XXXXXXXX-X (incluya el guión y dígito verificador)</small>
+                    </div>
+                    <button id="searchBtn" class="search-btn">
+                        <span class="btn-icon">🔍</span>
+                        Buscar Cupones
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section id="resultsSection" class="results-section" style="display: none;">
+            <div class="results-card">
+                <h3 class="results-title">Información de Cupones</h3>
+                <div id="resultsContent" class="results-content">
+                    <!-- Dynamic content will be inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Instructions Section -->
+        <section class="instructions-section">
+            <div class="instructions-card">
+                <h3 class="instructions-title">Instrucciones de Uso</h3>
+                <div class="instructions-grid">
+                    <div class="instruction-item">
+                        <div class="instruction-number">1</div>
+                        <div class="instruction-content">
+                            <h4>Ingrese el RUT del Afiliado</h4>
+                            <p>Escriba el RUT completo con guión y dígito verificador</p>
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">2</div>
+                        <div class="instruction-content">
+                            <h4>Formato Correcto</h4>
+                            <p>Si su RUT es menor a 10 millones, anteponga un 0. Use K mayúscula si corresponde</p>
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">3</div>
+                        <div class="instruction-content">
+                            <h4>Privacidad</h4>
+                            <p>Al terminar, elimine su RUT para que otros no puedan visualizarlo</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Admin Modal -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Panel de Administración</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="admin-section-content">
+                    <h4>Gestión de Archivos Excel</h4>
+                    <div class="file-upload-section">
+                        <input type="file" id="excelFile" accept=".xlsx,.xls" class="file-input">
+                        <label for="excelFile" class="file-label">
+                            <span class="file-icon">📄</span>
+                            Seleccionar Archivo Excel
+                        </label>
+                        <button id="uploadBtn" class="upload-btn" disabled>
+                            <span class="btn-icon">⬆</span>
+                            Subir Archivo
+                        </button>
+                    </div>
+                    <div class="current-files">
+                        <h5>Archivos Actuales</h5>
+                        <div id="filesList" class="files-list">
+                            <p class="no-files">No hay archivos cargados</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Procesando información...</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="excel-processor.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
