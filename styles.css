@@ -1,6 +1,6 @@
 /* ========================================
    BIENESTAR APS - SISTEMA DE CUPONES DE GAS
-   Estilos CSS con Paleta de Salud Armónica
+   CSS v3.0 con Firebase Storage y Scroll Mejorado
    ======================================== */
 
 /* Variables CSS - Tema de Salud Armónico */
@@ -70,6 +70,10 @@
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: var(--font-body);
     background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 50%, var(--health-primary) 0.1%, var(--gray-25) 100%);
@@ -133,7 +137,7 @@ body {
 }
 
 /* ========================================
-   BOTONES
+   BOTONES MEJORADOS
    ======================================== */
 
 .admin-btn {
@@ -196,6 +200,7 @@ body {
     box-shadow: var(--shadow-lg);
     position: relative;
     overflow: hidden;
+    min-height: 3.5rem;
 }
 
 .search-btn::before {
@@ -218,10 +223,6 @@ body {
     box-shadow: var(--shadow-xl);
 }
 
-.search-btn:active {
-    transform: translateY(0);
-}
-
 .btn-icon {
     font-size: 1.2rem;
 }
@@ -239,6 +240,10 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: var(--shadow-md);
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .login-btn:hover,
@@ -250,12 +255,10 @@ body {
 
 .logout-btn {
     background: linear-gradient(135deg, var(--health-error), #dc2626);
-    margin-bottom: var(--space-lg);
 }
 
 .change-password-btn {
     background: linear-gradient(135deg, var(--health-warning), #d97706);
-    margin-bottom: var(--space-lg);
 }
 
 .upload-btn {
@@ -271,14 +274,15 @@ body {
     justify-content: center;
     gap: var(--space-sm);
     transition: all 0.3s ease;
-    align-self: flex-start;
     box-shadow: var(--shadow-md);
+    min-height: 3rem;
 }
 
 .upload-btn:disabled {
     background: var(--gray-400);
     cursor: not-allowed;
     box-shadow: none;
+    transform: none;
 }
 
 .upload-btn:hover:not(:disabled) {
@@ -317,7 +321,7 @@ body {
 }
 
 /* ========================================
-   CARDS
+   CARDS MEJORADAS
    ======================================== */
 
 .search-card,
@@ -363,7 +367,7 @@ body {
 }
 
 /* ========================================
-   TÍTULOS DE SECCIÓN
+   TÍTULOS
    ======================================== */
 
 .section-title,
@@ -377,8 +381,16 @@ body {
     text-align: center;
 }
 
+.form-title {
+    color: var(--health-primary);
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: var(--space-lg);
+}
+
 /* ========================================
-   FORMULARIOS
+   FORMULARIOS MEJORADOS
    ======================================== */
 
 .search-form {
@@ -449,6 +461,17 @@ body {
     text-align: center;
 }
 
+.form-actions {
+    display: flex;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.form-actions button {
+    flex: 1;
+    min-width: 140px;
+}
+
 /* ========================================
    INSTRUCCIONES
    ======================================== */
@@ -506,7 +529,7 @@ body {
 }
 
 /* ========================================
-   MODALES
+   MODALES CON SCROLL MEJORADO
    ======================================== */
 
 .modal {
@@ -524,15 +547,23 @@ body {
 
 .modal-content {
     background: var(--white);
-    margin: 5% auto;
+    margin: 2% auto;
     padding: 0;
     border-radius: var(--radius-2xl);
     width: 90%;
-    max-width: 500px;
+    max-width: 600px;
+    max-height: 90vh;
     box-shadow: var(--shadow-xl);
     animation: slideDown 0.3s ease-out;
     overflow: hidden;
     border: 1px solid var(--gray-200);
+    display: flex;
+    flex-direction: column;
+}
+
+/* SCROLL MEJORADO PARA MODAL */
+.modal-scrollable {
+    max-height: 90vh;
 }
 
 @keyframes fadeIn {
@@ -558,6 +589,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .modal-header h3 {
@@ -571,48 +603,122 @@ body {
     background: none;
     border: none;
     color: var(--white);
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     cursor: pointer;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    font-weight: bold;
 }
 
 .close-btn:hover {
     background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
 }
 
 .modal-body {
     padding: var(--space-xl);
+    overflow-y: auto;
+    flex: 1;
+    max-height: calc(90vh - 100px);
+}
+
+/* SCROLL CUSTOMIZADO PARA WEBKIT */
+.modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: var(--gray-100);
+    border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: var(--health-primary);
+    border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--health-secondary);
 }
 
 .admin-panel {
     display: none;
 }
 
-.admin-panel h4,
+/* PANEL ADMINISTRATIVO CON SCROLL OPTIMIZADO */
+.admin-panel-scrollable {
+    max-height: none;
+}
+
+.admin-welcome {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+    padding: var(--space-lg);
+    background: rgba(16, 185, 129, 0.05);
+    border-radius: var(--radius-xl);
+    border: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+.welcome-text {
+    color: var(--health-success);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: var(--space-xs);
+}
+
+.welcome-subtitle {
+    color: var(--gray-600);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.admin-actions {
+    display: flex;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+    flex-wrap: wrap;
+}
+
+.admin-actions button {
+    flex: 1;
+    min-width: 140px;
+}
+
 .admin-section-content h4 {
     margin-bottom: var(--space-lg);
     color: var(--gray-800);
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: 1.3rem;
+    font-weight: 700;
+    font-family: var(--font-display);
+}
+
+.section-description {
+    color: var(--gray-600);
+    margin-bottom: var(--space-xl);
+    padding: var(--space-lg);
+    background: var(--gray-25);
+    border-radius: var(--radius-lg);
+    border-left: 4px solid var(--health-primary);
+    font-size: 0.95rem;
+    line-height: 1.6;
 }
 
 /* ========================================
-   SUBIDA DE ARCHIVOS
+   SUBIDA DE ARCHIVOS MEJORADA
    ======================================== */
 
 .file-upload-section {
     display: flex;
     flex-direction: column;
-    gap: var(--space-md);
-    margin-bottom: var(--space-xl);
-    padding: var(--space-xl);
-    background: var(--gray-25);
+    gap: var(--space-lg);
+    margin-bottom: var(--space-2xl);
+    padding: var(--space-2xl);
+    background: linear-gradient(135deg, var(--gray-25), var(--white));
     border-radius: var(--radius-xl);
     border: 2px dashed var(--gray-300);
     transition: all 0.3s ease;
@@ -629,10 +735,11 @@ body {
 
 .file-label {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: var(--space-sm);
-    padding: var(--space-xl);
+    padding: var(--space-2xl);
     background: var(--white);
     border: 2px solid var(--gray-300);
     border-radius: var(--radius-xl);
@@ -640,16 +747,32 @@ body {
     transition: all 0.3s ease;
     font-weight: 600;
     color: var(--gray-700);
+    text-align: center;
 }
 
 .file-label:hover {
     border-color: var(--health-primary);
     background: rgba(16, 185, 129, 0.05);
     color: var(--health-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.file-label small {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    font-weight: normal;
 }
 
 .file-icon {
-    font-size: 1.3rem;
+    font-size: 2rem;
+}
+
+.current-files h5 {
+    margin-bottom: var(--space-lg);
+    color: var(--gray-700);
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
 .files-list {
@@ -657,21 +780,22 @@ body {
     border: 1px solid var(--gray-200);
     border-radius: var(--radius-xl);
     padding: var(--space-lg);
-    min-height: 120px;
+    min-height: 140px;
 }
 
 .no-files {
     color: var(--gray-500);
     font-style: italic;
     text-align: center;
-    margin: var(--space-lg) 0;
+    margin: var(--space-xl) 0;
+    font-size: 0.95rem;
 }
 
 .file-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--space-md) 0;
+    padding: var(--space-lg) 0;
     border-bottom: 1px solid var(--gray-100);
 }
 
@@ -682,15 +806,53 @@ body {
 .file-name {
     font-weight: 600;
     color: var(--gray-800);
+    margin-bottom: var(--space-xs);
 }
 
 .file-date {
     font-size: 0.85rem;
     color: var(--gray-500);
+    margin-bottom: var(--space-xs);
+}
+
+/* INFORMACIÓN DEL SISTEMA */
+.admin-info {
+    margin-top: var(--space-2xl);
+    padding: var(--space-xl);
+    background: linear-gradient(135deg, var(--gray-25), rgba(16, 185, 129, 0.02));
+    border-radius: var(--radius-xl);
+    border: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+.admin-info h5 {
+    color: var(--health-primary);
+    margin-bottom: var(--space-lg);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.admin-info ul {
+    list-style: none;
+    padding: 0;
+}
+
+.admin-info li {
+    padding: var(--space-sm) 0;
+    color: var(--gray-600);
+    font-size: 0.9rem;
+    border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+.admin-info li:last-child {
+    border-bottom: none;
+}
+
+.admin-info strong {
+    color: var(--gray-800);
 }
 
 /* ========================================
-   RESULTADOS
+   RESULTADOS SIMPLIFICADOS
    ======================================== */
 
 .results-section {
@@ -718,11 +880,12 @@ body {
 }
 
 .user-name {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 700;
     color: var(--health-primary);
     margin-bottom: var(--space-sm);
     font-family: var(--font-display);
+    text-align: center;
 }
 
 .user-details {
@@ -735,8 +898,11 @@ body {
 .user-detail {
     display: flex;
     justify-content: space-between;
-    padding: var(--space-sm) 0;
-    border-bottom: 1px solid var(--gray-200);
+    align-items: center;
+    padding: var(--space-md);
+    background: var(--gray-50);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
 }
 
 .detail-label {
@@ -747,122 +913,8 @@ body {
 
 .detail-value {
     color: var(--gray-800);
-    font-weight: 500;
-    text-align: right;
-}
-
-/* ========================================
-   CARDS DE GAS
-   ======================================== */
-
-.gas-types-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: var(--space-xl);
-}
-
-.gas-type-card {
-    border: 2px solid var(--gray-200);
-    border-radius: var(--radius-2xl);
-    padding: var(--space-xl);
-    background: var(--white);
-    transition: all 0.3s ease;
-    box-shadow: var(--shadow-md);
-}
-
-.gas-type-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl);
-}
-
-.gas-type-card.lipigas {
-    border-color: var(--gas-lipigas);
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.02), rgba(14, 165, 233, 0.08));
-}
-
-.gas-type-card.abastible {
-    border-color: var(--gas-abastible);
-    background: linear-gradient(135deg, rgba(249, 115, 22, 0.02), rgba(249, 115, 22, 0.08));
-}
-
-.gas-type-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
-    margin-bottom: var(--space-xl);
-    padding-bottom: var(--space-md);
-    border-bottom: 2px solid var(--gray-100);
-}
-
-.gas-type-icon {
-    font-size: 2.2rem;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-}
-
-.gas-type-name {
-    font-size: 1.4rem;
-    font-weight: 700;
-    font-family: var(--font-display);
-}
-
-.gas-type-card.lipigas .gas-type-name {
-    color: var(--gas-lipigas);
-}
-
-.gas-type-card.abastible .gas-type-name {
-    color: var(--gas-abastible);
-}
-
-/* ========================================
-   CILINDROS
-   ======================================== */
-
-.cylinders-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: var(--space-md);
-}
-
-.cylinder-info {
-    background: var(--gray-25);
-    padding: var(--space-lg);
-    border-radius: var(--radius-xl);
-    text-align: center;
-    border: 1px solid var(--gray-200);
-    transition: all 0.3s ease;
-}
-
-.cylinder-info:hover {
-    background: var(--white);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-}
-
-.cylinder-weight {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--gray-800);
-    margin-bottom: var(--space-sm);
-    font-family: var(--font-display);
-}
-
-.cylinder-used,
-.cylinder-available {
-    font-size: 0.85rem;
-    margin-bottom: var(--space-xs);
-    padding: var(--space-xs) var(--space-sm);
-    border-radius: var(--radius-md);
     font-weight: 600;
-}
-
-.cylinder-used {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--health-error);
-}
-
-.cylinder-available {
-    background: rgba(34, 197, 94, 0.1);
-    color: var(--health-success);
+    text-align: right;
 }
 
 /* ========================================
@@ -875,12 +927,12 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     z-index: 2000;
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(12px);
 }
 
 .loading-spinner {
@@ -920,6 +972,9 @@ body {
     font-weight: 600;
     border: 1px solid;
     box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
 }
 
 .alert-error {
@@ -941,8 +996,20 @@ body {
 }
 
 /* ========================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN MEJORADO
    ======================================== */
+
+@media (max-width: 1024px) {
+    .modal-content {
+        width: 95%;
+        margin: 1% auto;
+        max-height: 95vh;
+    }
+    
+    .admin-actions {
+        flex-direction: column;
+    }
+}
 
 @media (max-width: 768px) {
     .header-content {
@@ -966,28 +1033,46 @@ body {
         font-size: 1.9rem;
     }
     
-    .gas-types-grid {
-        grid-template-columns: 1fr;
-    }
-    
     .instructions-grid {
         grid-template-columns: 1fr;
     }
     
     .modal-content {
-        width: 95%;
-        margin: 10% auto;
+        width: 98%;
+        margin: 1% auto;
+        max-height: 95vh;
+    }
+    
+    .modal-body {
+        padding: var(--space-lg);
+        max-height: calc(95vh - 80px);
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .admin-actions {
+        flex-direction: column;
+    }
+    
+    .user-details {
+        grid-template-columns: 1fr;
     }
 }
 
 @media (max-width: 480px) {
-    .cylinders-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
     .search-btn {
         width: 100%;
         justify-content: center;
+    }
+    
+    .file-label {
+        padding: var(--space-xl);
+    }
+    
+    .modal-body {
+        padding: var(--space-md);
     }
 }
 
@@ -1025,4 +1110,25 @@ body {
 
 .text-orange {
     color: var(--gas-abastible);
+}
+
+/* ========================================
+   SCROLL PERSONALIZADO GLOBAL
+   ======================================== */
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--gray-100);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--health-primary), var(--health-secondary));
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--health-secondary), var(--health-primary));
 }
