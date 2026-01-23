@@ -1,5 +1,4 @@
 /**
-/**
  * BIENESTAR APS - SISTEMA DE CUPONES DE GAS
  * Versión 3.2 - Firebase Storage CORREGIDO (Sin errores CORS)
  */
