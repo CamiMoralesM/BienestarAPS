@@ -376,12 +376,18 @@ class HealthGasSystemManager {
         const resultsContent = document.getElementById('resultsContent');
 
         resultsContent.innerHTML = `
-            <h3>Información de Cupones</h3>
-
             <div class="user-info">
-                <strong>${userInfo.nombres} ${userInfo.apellidos}</strong><br>
-                RUT: ${userInfo.rut}<br>
-                ${userInfo.establecimiento || ''}
+                <div class="user-name">${userInfo.nombres} ${userInfo.apellidos}</div>
+                <div class="user-details">
+                    <div class="user-detail">
+                        <span class="detail-label">RUT:</span>
+                        <span class="detail-value">${userInfo.rut}</span>
+                    </div>
+                    <div class="user-detail">
+                        <span class="detail-label">Centro de Salud:</span>
+                        <span class="detail-value">${userInfo.establecimiento || 'No especificado'}</span>
+                    </div>
+                </div>
             </div>
 
             <table class="coupon-table">
@@ -495,8 +501,17 @@ class HealthGasSystemManager {
                     }
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-                    const processedData = this.extractDataFromWorkbook(workbook);
-                    resolve(processedData);
+                    
+                    // Usar ExcelProcessor si está disponible
+                    if (typeof ExcelProcessor !== 'undefined') {
+                        const processor = new ExcelProcessor();
+                        processor.currentWorkbook = workbook;
+                        const processedData = processor.extractDataFromWorkbook(workbook);
+                        resolve(processedData);
+                    } else {
+                        const processedData = this.extractDataFromWorkbook(workbook);
+                        resolve(processedData);
+                    }
                 } catch (error) {
                     console.error('Error procesando Excel:', error);
                     reject(error);
@@ -804,11 +819,9 @@ class HealthGasSystemManager {
     }
 
     showAlert(message, type = 'info') {
-        const existingAlerts = document.querySelectorAll('.alert');
+        const existingAlerts = document.querySelectorAll('.alert:not(#loginError):not(#passwordError):not(#passwordSuccess)');
         existingAlerts.forEach(alert => {
-            if (!alert.id.includes('Error') && !alert.id.includes('Success')) {
-                alert.remove();
-            }
+            alert.remove();
         });
 
         const alert = document.createElement('div');
@@ -817,7 +830,9 @@ class HealthGasSystemManager {
         alert.style.cursor = 'pointer';
 
         const searchCard = document.querySelector('.search-card');
-        searchCard.parentNode.insertBefore(alert, searchCard.nextSibling);
+        if (searchCard) {
+            searchCard.parentNode.insertBefore(alert, searchCard.nextSibling);
+        }
 
         setTimeout(() => {
             if (alert.parentNode) {
@@ -847,7 +862,9 @@ class HealthGasSystemManager {
 // GLOBAL FUNCTIONS
 // ========================================
 function closeAdminModal() {
-    healthGasSystem.closeAdminModal();
+    if (healthGasSystem) {
+        healthGasSystem.closeAdminModal();
+    }
 }
 
 // ========================================
@@ -861,7 +878,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
     console.log('🏥 Sistema de Cupones de Gas - Bienestar APS inicializado correctamente');
     console.log('📧 Admin: Bienestar.aps@cmpuentealto.cl');
-    console.log('🔑 Password: 20BAPS25 (cambiar desde el panel)');
+    console.log('🔑 Contraseña configurada en Firebase');
 });
 
 // Make available globally for debugging and external access
