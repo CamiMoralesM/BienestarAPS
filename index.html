@@ -7,13 +7,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles-v3.css">
     
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, signInWithEmailAndPassword, updatePassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-
+    <!-- Firebase SDK v10 -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    
+    <script>
+        // Configuración de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyA-bEoWVhR9osz4dxHKylIr7D5e883RRkQ",
             authDomain: "bienestaraps-gas.firebaseapp.com",
@@ -24,14 +26,18 @@
             measurementId: "G-77C4Z6XRSV"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
         
-        window.firebaseAuth = auth;
-        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-        window.updatePassword = updatePassword;
-        window.onAuthStateChanged = onAuthStateChanged;
-        window.signOut = signOut;
+        // Exponer Auth y Storage globalmente
+        window.firebaseAuth = firebase.auth();
+        window.firebaseStorage = firebase.storage();
+        window.signInWithEmailAndPassword = firebase.auth().signInWithEmailAndPassword.bind(firebase.auth());
+        window.updatePassword = (user, password) => user.updatePassword(password);
+        window.onAuthStateChanged = firebase.auth().onAuthStateChanged.bind(firebase.auth());
+        window.signOut = firebase.auth().signOut.bind(firebase.auth());
+
+        console.log('🔥 Firebase configurado correctamente');
     </script>
 </head>
 <body>
@@ -97,22 +103,22 @@
                     <div class="instruction-item">
                         <div class="instruction-number">1</div>
                         <div class="instruction-content">
-                            <h4>Formato Correcto</h4>
-                            <p>Si su RUT es menor a 10 millones, anteponga un 0</p>
+                            <h4>Ingrese su RUT</h4>
+                            <p>Escriba su RUT completo con guión y dígito verificador. Ejemplo: 12345678-9</p>
                         </div>
                     </div>
                     <div class="instruction-item">
                         <div class="instruction-number">2</div>
                         <div class="instruction-content">
-                            <h4>Ingrese el RUT</h4>
-                            <p>Escriba su RUT en el formato XXXXXXXX-X</p>
+                            <h4>Formato Correcto</h4>
+                            <p>Si su RUT es menor a 10 millones, anteponga un 0. Use K mayúscula si corresponde</p>
                         </div>
                     </div>
                     <div class="instruction-item">
                         <div class="instruction-number">3</div>
                         <div class="instruction-content">
                             <h4>Ver Disponibilidad</h4>
-                            <p>El sistema mostrará sus cupones disponibles por tipo y tamaño</p>
+                            <p>El sistema mostrará instantáneamente sus cupones usados y disponibles</p>
                         </div>
                     </div>
                 </div>
@@ -120,14 +126,15 @@
         </section>
     </main>
 
-    <!-- Admin Login Modal -->
+    <!-- Admin Login Modal - MEJORADO CON SCROLL -->
     <div id="adminLoginModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content modal-scrollable">
             <div class="modal-header">
                 <h3>🔐 Acceso Administrativo</h3>
-                <button class="close-btn" onclick="closeAdminModal()">&times;</button>
+                <button class="close-btn">&times;</button>
             </div>
             <div class="modal-body">
+                <!-- Login Form -->
                 <div id="loginForm" class="login-form">
                     <div class="input-group">
                         <label for="adminEmail" class="input-label">Email Institucional</label>
@@ -152,14 +159,14 @@
                     <div id="loginError" class="alert alert-error" style="display: none;"></div>
                 </div>
 
-                <!-- Admin Panel (hidden initially) -->
-                <div id="adminPanel" class="admin-panel">
-                    <div style="text-align: center; margin-bottom: 1.5rem;">
-                        <p style="color: var(--health-success); font-weight: 600;">✅ Acceso autorizado</p>
-                        <p style="color: var(--gray-600); font-size: 0.9rem;">Bienvenido al panel administrativo</p>
+                <!-- Admin Panel - CON SCROLL MEJORADO -->
+                <div id="adminPanel" class="admin-panel admin-panel-scrollable">
+                    <div class="admin-welcome">
+                        <p class="welcome-text">✅ Acceso autorizado</p>
+                        <p class="welcome-subtitle">Panel administrativo - Sistema Bienestar APS</p>
                     </div>
                     
-                    <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                    <div class="admin-actions">
                         <button id="logoutBtn" class="logout-btn">
                             🚪 Cerrar Sesión
                         </button>
@@ -170,29 +177,48 @@
 
                     <div class="admin-section-content">
                         <h4>📊 Gestión de Archivos Excel</h4>
+                        <p class="section-description">
+                            Suba aquí el archivo Excel con los datos de cupones. 
+                            El archivo se almacenará en la nube de Firebase para acceso desde cualquier dispositivo.
+                        </p>
+                        
                         <div class="file-upload-section">
                             <input type="file" id="excelFile" accept=".xlsx,.xls" class="file-input">
                             <label for="excelFile" class="file-label">
                                 <span class="file-icon">📄</span>
                                 Seleccionar Archivo Excel
+                                <small>Compatible con .xlsx y .xls</small>
                             </label>
                             <button id="uploadBtn" class="upload-btn" disabled>
-                                <span class="btn-icon">⬆️</span>
-                                Subir Archivo
+                                <span class="btn-icon">☁️</span>
+                                Subir a Firebase
                             </button>
                         </div>
+                        
                         <div class="current-files">
-                            <h5 style="margin-bottom: 1rem; color: var(--gray-700);">📁 Archivos Actuales</h5>
+                            <h5>📁 Archivo Actual en la Nube</h5>
                             <div id="filesList" class="files-list">
                                 <p class="no-files">No hay archivos cargados</p>
                             </div>
                         </div>
+
+                        <div class="admin-info">
+                            <h5>ℹ️ Información del Sistema</h5>
+                            <ul>
+                                <li>📊 <strong>Hoja requerida:</strong> CUPONES DISPONIBLES</li>
+                                <li>📝 <strong>Celdas de lectura:</strong> C5 (RUT), D5 (Nombres), E5 (Apellidos)</li>
+                                <li>⛽ <strong>Datos Lipigas:</strong> F5, G5, H5, I5 (5kg, 11kg, 15kg, 45kg)</li>
+                                <li>🔥 <strong>Datos Abastible:</strong> J5, K5, L5, M5 (5kg, 11kg, 15kg, 45kg)</li>
+                                <li>📈 <strong>Estados:</strong> N5 (Usado), O5 (Disponible)</li>
+                                <li>☁️ <strong>Almacenamiento:</strong> Firebase Cloud Storage</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Change Password Form (hidden initially) -->
+                <!-- Change Password Form -->
                 <div id="changePasswordForm" class="login-form" style="display: none;">
-                    <h4 style="margin-bottom: 1rem; color: var(--health-primary);">🔑 Cambiar Contraseña</h4>
+                    <h4 class="form-title">🔑 Cambiar Contraseña</h4>
                     <div class="input-group">
                         <label for="currentPassword" class="input-label">Contraseña Actual</label>
                         <input 
@@ -217,11 +243,11 @@
                             placeholder="Confirmar contraseña"
                         >
                     </div>
-                    <div style="display: flex; gap: 0.75rem;">
-                        <button id="updatePasswordBtn" class="login-btn" style="flex: 1;">
+                    <div class="form-actions">
+                        <button id="updatePasswordBtn" class="login-btn">
                             ✅ Actualizar Contraseña
                         </button>
-                        <button id="cancelPasswordBtn" class="change-password-btn" style="flex: 0 0 auto;">
+                        <button id="cancelPasswordBtn" class="change-password-btn">
                             ❌ Cancelar
                         </button>
                     </div>
@@ -242,7 +268,6 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="excel-processor.js"></script>
-    <script src="script.js"></script>
+    <script src="script-firebase-storage.js"></script>
 </body>
 </html>
