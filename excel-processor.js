@@ -308,6 +308,33 @@ class ExcelProcessor {
     }
 }
 
+getCuponesDisponiblesByRUT(rutBuscado) {
+    const sheet = this.currentWorkbook.Sheets['CUPONES DISPONIBLES'];
+    if (!sheet) return null;
+
+    const get = (cell) => sheet[cell]?.v ?? 0;
+
+    // El RUT ya debe estar escrito en C5 desde la web
+    return {
+        rut: get('C5'),
+
+        lipigas: {
+            5: get('F5'),
+            11: get('G5'),
+            15: get('H5'),
+            45: get('I5')
+        },
+        abastible: {
+            5: get('J5'),
+            11: get('K5'),
+            15: get('L5'),
+            45: get('M5')
+        },
+        usados: get('N5'),
+        disponibles: get('O5')
+    };
+}
+
 // Integración con el sistema principal
 if (typeof window !== 'undefined') {
     window.ExcelProcessor = ExcelProcessor;
