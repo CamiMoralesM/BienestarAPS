@@ -419,7 +419,6 @@ findInGeneralSheet(sheet, rut) {
 
         return null;
     }
-
 displaySimplifiedResults(couponInfo) {
     const resultsSection = document.getElementById('resultsSection');
     const resultsContent = document.getElementById('resultsContent');
@@ -469,42 +468,59 @@ displaySimplifiedResults(couponInfo) {
                 <div style="font-size: 3rem; font-weight: 800; color: var(--health-error); margin-bottom: 0.5rem; font-family: var(--font-display);">
                     ${couponInfo.usadoEnElMes ?? 0}
                 </div>
-                <div style="color: var(--health-error); font-weight: 600; font-size: 1.2rem;">
-                    USADO EN EL MES
-                </div>
+                <div style="color: var(--health-error); font-weight: 600; font-size: 1.2rem;">USADO EN EL MES</div>
             </div>
-            
             <div style="text-align: center; padding: 2rem; background: rgba(34, 197, 94, 0.05); border-radius: 1.5rem; border: 2px solid rgba(34, 197, 94, 0.1);">
                 <div style="font-size: 3rem; font-weight: 800; color: var(--health-success); margin-bottom: 0.5rem; font-family: var(--font-display);">
                     ${couponInfo.disponible ?? 4}
                 </div>
-                <div style="color: var(--health-success); font-weight: 600; font-size: 1.2rem;">
-                    DISPONIBLE
-                </div>
+                <div style="color: var(--health-success); font-weight: 600; font-size: 1.2rem;">DISPONIBLE</div>
             </div>
         </div>
     </div>
 
     <!-- Detalle por Empresa -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
-        
+
         <!-- LIPIGAS -->
-        <div style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(14, 165, 233, 0.2); box-shadow: var(--shadow-lg);">
+        <div style="background: linear-gradient(135deg, rgba(14,165,233,0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(14,165,233,0.2); box-shadow: var(--shadow-lg);">
             <div style="text-align: center; margin-bottom: 2rem;">
                 <h3 style="color: #0ea5e9; font-size: 1.5rem; font-weight: 800;">⛽ LIPIGAS</h3>
-                <div style="font-size: 2rem; font-weight: 700; color: #0ea5e9;">
-                    Total Usado: ${lipigasUsados}
-                </div>
+                <div style="font-size: 2rem; font-weight: 700; color: #0ea5e9;">Total Usado: ${lipigasUsados}</div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                ${['5','11','15','45'].map(kg => `
+                    <div style="text-align: center; padding: 1.5rem; background: rgba(14,165,233,0.1); border-radius: 1rem;">
+                        <div style="font-size: 1.8rem; font-weight: 700; color: #0ea5e9; margin-bottom: 0.5rem;">
+                            ${couponInfo.lipigas?.[kg] ?? 0}
+                        </div>
+                        <div style="color: #0369a1; font-weight: 600; font-size: 0.9rem;">
+                            ${kg} KG
+                        </div>
+                    </div>
+                `).join('')}
             </div>
         </div>
 
         <!-- ABASTIBLE -->
-        <div style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(249, 115, 22, 0.2); box-shadow: var(--shadow-lg);">
+        <div style="background: linear-gradient(135deg, rgba(249,115,22,0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(249,115,22,0.2); box-shadow: var(--shadow-lg);">
             <div style="text-align: center; margin-bottom: 2rem;">
                 <h3 style="color: #f97316; font-size: 1.5rem; font-weight: 800;">🔥 ABASTIBLE</h3>
-                <div style="font-size: 2rem; font-weight: 700; color: #f97316;">
-                    Total Usado: ${abastibleUsados}
-                </div>
+                <div style="font-size: 2rem; font-weight: 700; color: #f97316;">Total Usado: ${abastibleUsados}</div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                ${['5','11','15','45'].map(kg => `
+                    <div style="text-align: center; padding: 1.5rem; background: rgba(249,115,22,0.1); border-radius: 1rem;">
+                        <div style="font-size: 1.8rem; font-weight: 700; color: #f97316; margin-bottom: 0.5rem;">
+                            ${couponInfo.abastible?.[kg] ?? 0}
+                        </div>
+                        <div style="color: #c2410c; font-weight: 600; font-size: 0.9rem;">
+                            ${kg} KG
+                        </div>
+                    </div>
+                `).join('')}
             </div>
         </div>
     </div>
@@ -514,6 +530,7 @@ displaySimplifiedResults(couponInfo) {
     resultsSection.style.display = 'block';
     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
 
     // ========================================
     // PANEL ADMINISTRATIVO - ACTUALIZADO PARA GOOGLE SHEETS
