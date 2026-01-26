@@ -288,8 +288,8 @@ class BienestarAPSSystem {
         // Buscar TODAS las filas que coincidan con el RUT
         for (let i = 5; i < jsonData.length; i++) {
             const row = jsonData[i];
-            if (row && row[3]) { // Columna D (índice 3) - RUT AFILIADO
-                const rutEnFila = String(row[3]).trim();
+            if (row && row[4]) { // Columna E (índice 4) - RUT
+                const rutEnFila = String(row[4]).trim();
                 const rutNormalizado = this.normalizeRUT(rutEnFila);
                 
                 if (rutNormalizado === rut) {
@@ -298,23 +298,23 @@ class BienestarAPSSystem {
                     
                     // PRIMERA VEZ: Guardar datos básicos del usuario
                     if (!datosUsuario.nombres) {
-                        datosUsuario.nombres = row[4] || '';     // Columna E (NOMBRES)
-                        datosUsuario.apellidos = row[5] || '';   // Columna F (APELLIDOS)
-                        datosUsuario.establecimiento = row[6] || ''; // Columna G (CENTRO)
-                        datosUsuario.usadoEnElMes = this.parseNumber(row[22]) || 0; // Columna W (USADO EN EL MES)
-                        datosUsuario.disponible = this.parseNumber(row[23]) || 0;   // Columna X (DISPONIBLE)
+                        datosUsuario.nombres = row[5] || '';     // Columna F
+                        datosUsuario.apellidos = row[6] || '';   // Columna G
+                        datosUsuario.establecimiento = row[7] || ''; // Columna H
+                        datosUsuario.usadoEnElMes = this.parseNumber(row[31]) || 0; // Columna AF
+                        datosUsuario.disponible = this.parseNumber(row[32]) || 4;   // Columna AG ← DIRECTO
                     }
                     
                     // SIEMPRE: Sumar cupones de esta transacción
-                    datosUsuario.lipigas['5'] += this.parseNumber(row[8]) || 0;   // Columna I
-                    datosUsuario.lipigas['11'] += this.parseNumber(row[9]) || 0;  // Columna J
-                    datosUsuario.lipigas['15'] += this.parseNumber(row[10]) || 0; // Columna K
-                    datosUsuario.lipigas['45'] += this.parseNumber(row[11]) || 0; // Columna L
+                    datosUsuario.lipigas['5'] += this.parseNumber(row[9]) || 0;   // Columna J
+                    datosUsuario.lipigas['11'] += this.parseNumber(row[10]) || 0; // Columna K
+                    datosUsuario.lipigas['15'] += this.parseNumber(row[11]) || 0; // Columna L
+                    datosUsuario.lipigas['45'] += this.parseNumber(row[12]) || 0; // Columna M
                     
-                    datosUsuario.abastible['5'] += this.parseNumber(row[12]) || 0;  // Columna M
-                    datosUsuario.abastible['11'] += this.parseNumber(row[13]) || 0; // Columna N
-                    datosUsuario.abastible['15'] += this.parseNumber(row[14]) || 0; // Columna O
-                    datosUsuario.abastible['45'] += this.parseNumber(row[15]) || 0; // Columna P
+                    datosUsuario.abastible['5'] += this.parseNumber(row[13]) || 0;  // Columna N
+                    datosUsuario.abastible['11'] += this.parseNumber(row[14]) || 0; // Columna O
+                    datosUsuario.abastible['15'] += this.parseNumber(row[15]) || 0; // Columna P
+                    datosUsuario.abastible['45'] += this.parseNumber(row[16]) || 0; // Columna Q
                 }
             }
         }
