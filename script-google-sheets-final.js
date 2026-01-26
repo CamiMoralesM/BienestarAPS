@@ -8,8 +8,10 @@ class BienestarAPSSystem {
         this.currentUser = null;
         this.currentWorkbook = null;
         this.selectedFile = null;
-        // TU GOOGLE SHEETS - URL PUBLICADA CORRECTA PARA DESCARGA
-        this.EXCEL_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTlgHF7u5CO6n4jaVol3Ov9a1jwgwyGg_ev3Gu3M1Q0fakiRhDDukjByTUjleeIPQ/pub?output=xlsx';
+        // SHAREPOINT - URL DE DESCARGA DIRECTA
+        this.EXCEL_URL = 'https://cmesapa-my.sharepoint.com/:x:/g/personal/alejandro_ponce_cmpuentealto_cl/IQDMU9-cU2OESYO8ETvodgptAU2lRYCtsFgLjHcMfgBQd-I?e=z8r8sT&download=1';
+        // URL alternativa si la principal no funciona
+        this.BACKUP_URL = 'https://cmesapa-my.sharepoint.com/personal/alejandro_ponce_cmpuentealto_cl/_layouts/15/download.aspx?share=IQDMU9-cU2OESYO8ETvodgptAU2lRYCtsFgLjHcMfgBQd-I';
         this.init();
     }
 
@@ -44,8 +46,8 @@ class BienestarAPSSystem {
 
     async loadExcelFromGoogleSheets() {
         try {
-            console.log('📊 Descargando datos desde Google Sheets...');
-            console.log('🔗 URL corregida:', this.EXCEL_URL);
+            console.log('📊 Descargando datos desde SharePoint...');
+            console.log('🔗 URL principal:', this.EXCEL_URL);
             
             // Intentar caché reciente primero (5 minutos)
             const cachedData = localStorage.getItem('gasSystemData');
@@ -58,48 +60,116 @@ class BienestarAPSSystem {
                 }
             }
 
-            // Descargar desde Google Sheets
-            const response = await fetch(this.EXCEL_URL, {
+            // Intentar descarga desde SharePoint
+            console.log('🌐 Iniciando descarga desde SharePoint...');
+            
+            // Método 1: URL con download=1
+            let success = await this.trySharePointDownload(this.EXCEL_URL, 'Método 1');
+            if (success) return true;
+
+            // Método 2: URL alternativa de SharePoint
+            if (this.BACKUP_URL) {
+                console.log('🔄 Intentando método alternativo...');
+                success = await this.trySharePointDownload(this.BACKUP_URL, 'Método 2');
+                if (success) return true;
+            }
+
+            // Método 3: Intentar sin parámetro download
+            const urlSinDownload = this.EXCEL_URL.replace('&download=1', '');
+            console.log('🔄 Intentando sin parámetro download...');
+            success = await this.trySharePointDownload(urlSinDownload, 'Método 3');
+            if (success) return true;
+            
+            // Usar caché antiguo como fallback
+            console.log('📋 Intentando usar datos guardados localmente...');
+            const hasOldCache = this.loadFromOldCache();
+            this.showDataStatus(false, 'Problemas conectando a SharePoint');
+            return hasOldCache;
+            
+        } catch (error) {
+            console.error('❌ Error general descargando desde SharePoint:', error.message);
+            const hasOldCache = this.loadFromOldCache();
+            this.showDataStatus(false, error.message);
+            return hasOldCache;
+        }
+    }
+
+    async trySharePointDownload(url, methodName) {
+        try {
+            console.log(`🔗 ${methodName}: ${url.substring(0, 80)}...`);
+            
+            const response = await fetch(url, {
                 method: 'GET',
                 mode: 'cors',
-                cache: 'no-cache' // Siempre obtener la versión más reciente
+                cache: 'no-cache',
+                headers: {
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'User-Agent': navigator.userAgent
+                }
             });
 
-            console.log('📡 Respuesta del servidor:', response.status, response.statusText);
+            console.log(`📡 ${methodName} - Respuesta:`, response.status, response.statusText);
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: No se puede acceder a Google Sheets`);
+                if (response.status === 404) {
+                    throw new Error(`SharePoint: Archivo no encontrado (${response.status})`);
+                } else if (response.status === 403) {
+                    throw new Error(`SharePoint: Sin permisos de acceso (${response.status})`);
+                } else if (response.status === 401) {
+                    throw new Error(`SharePoint: Autenticación requerida (${response.status})`);
+                } else {
+                    throw new Error(`SharePoint: Error ${response.status} - ${response.statusText}`);
+                }
+            }
+
+            const contentType = response.headers.get('content-type') || '';
+            console.log(`📄 ${methodName} - Content-Type:`, contentType);
+
+            // Verificar que sea realmente un archivo Excel
+            if (contentType.includes('text/html') || contentType.includes('text/plain')) {
+                throw new Error('SharePoint devolvió HTML en lugar de Excel - revisar permisos');
             }
 
             const arrayBuffer = await response.arrayBuffer();
-            console.log('📏 Archivo descargado:', arrayBuffer.byteLength, 'bytes');
+            console.log(`📏 ${methodName} - Archivo descargado:`, arrayBuffer.byteLength, 'bytes');
+            
+            if (arrayBuffer.byteLength < 1000) {
+                throw new Error('Archivo muy pequeño - posible error de SharePoint');
+            }
             
             const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
-            console.log('📋 Hojas en el Excel:', workbook.SheetNames);
+            console.log(`📋 ${methodName} - Hojas en el Excel:`, workbook.SheetNames);
+            
+            if (workbook.SheetNames.length === 0) {
+                throw new Error('Excel sin hojas - archivo corrupto');
+            }
             
             this.currentWorkbook = workbook;
             
             // Guardar en caché con timestamp
             const fileData = {
-                name: 'cupones-gas-data.xlsx',
+                name: 'cupones-gas-sharepoint.xlsx',
                 downloadDate: new Date().toISOString(),
-                source: 'google-sheets',
-                url: this.EXCEL_URL,
+                source: 'sharepoint',
+                method: methodName,
+                url: url,
                 workbook: workbook
             };
-            localStorage.setItem('gasSystemData', JSON.stringify(fileData));
             
-            console.log('✅ Datos actualizados desde Google Sheets');
-            this.showDataStatus(true);
+            try {
+                localStorage.setItem('gasSystemData', JSON.stringify(fileData));
+                console.log(`💾 ${methodName} - Datos guardados en caché`);
+            } catch (storageError) {
+                console.warn('⚠️ No se pudo guardar en caché:', storageError.message);
+            }
+            
+            console.log(`✅ ${methodName} - Descarga exitosa desde SharePoint`);
+            this.showDataStatus(true, `Conectado vía ${methodName}`);
             return true;
             
         } catch (error) {
-            console.error('❌ Error descargando desde Google Sheets:', error.message);
-            
-            // Usar caché antiguo como fallback
-            const hasOldCache = this.loadFromOldCache();
-            this.showDataStatus(false, error.message);
-            return hasOldCache;
+            console.error(`❌ ${methodName} falló:`, error.message);
+            return false;
         }
     }
 
@@ -132,10 +202,10 @@ class BienestarAPSSystem {
         const statusElement = document.getElementById('dataStatus');
         if (statusElement) {
             if (success) {
-                statusElement.innerHTML = '🟢 Datos actualizados desde Google Sheets';
+                statusElement.innerHTML = '🟢 Datos actualizados desde SharePoint';
                 statusElement.className = 'alert alert-success';
             } else {
-                statusElement.innerHTML = `🔴 Problemas conectando a Google Sheets: ${errorMessage}`;
+                statusElement.innerHTML = `🔴 Problemas conectando a SharePoint: ${errorMessage}`;
                 statusElement.className = 'alert alert-warning';
             }
             statusElement.style.display = 'block';
@@ -174,7 +244,7 @@ class BienestarAPSSystem {
             if (!this.currentWorkbook || this.shouldRefreshData()) {
                 const loaded = await this.loadExcelFromGoogleSheets();
                 if (!loaded) {
-                    this.showAlert('📊 No se pueden cargar los datos actuales. Contacte al administrador.', 'warning');
+                    this.showAlert('📊 No se pueden cargar los datos actuales desde SharePoint. Contacte al administrador.', 'warning');
                     this.showLoading(false);
                     return;
                 }
