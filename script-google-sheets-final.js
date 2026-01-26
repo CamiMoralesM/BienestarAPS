@@ -288,8 +288,8 @@ class BienestarAPSSystem {
         // Buscar TODAS las filas que coincidan con el RUT
         for (let i = 5; i < jsonData.length; i++) {
             const row = jsonData[i];
-            if (row && row[3]) { // Columna D (índice 3) - RUT AFILIADO
-                const rutEnFila = String(row[3]).trim();
+            if (row && row[4]) { // Columna E (índice 4) - RUT
+                const rutEnFila = String(row[4]).trim();
                 const rutNormalizado = this.normalizeRUT(rutEnFila);
                 
                 if (rutNormalizado === rut) {
@@ -298,23 +298,23 @@ class BienestarAPSSystem {
                     
                     // PRIMERA VEZ: Guardar datos básicos del usuario
                     if (!datosUsuario.nombres) {
-                        datosUsuario.nombres = row[4] || '';     // Columna E (NOMBRES)
-                        datosUsuario.apellidos = row[5] || '';   // Columna F (APELLIDOS)
-                        datosUsuario.establecimiento = row[6] || ''; // Columna G (CENTRO)
-                        datosUsuario.usadoEnElMes = this.parseNumber(row[22]) || 0; // Columna W (USADO EN EL MES)
-                        datosUsuario.disponible = this.parseNumber(row[23]) || 0;   // Columna X (DISPONIBLE)
+                        datosUsuario.nombres = row[5] || '';     // Columna F
+                        datosUsuario.apellidos = row[6] || '';   // Columna G
+                        datosUsuario.establecimiento = row[7] || ''; // Columna H
+                        datosUsuario.usadoEnElMes = this.parseNumber(row[31]) || 0; // Columna AF
+                        datosUsuario.disponible = this.parseNumber(row[32]) || 4;   // Columna AG ← DIRECTO
                     }
                     
                     // SIEMPRE: Sumar cupones de esta transacción
-                    datosUsuario.lipigas['5'] += this.parseNumber(row[8]) || 0;   // Columna I
-                    datosUsuario.lipigas['11'] += this.parseNumber(row[9]) || 0;  // Columna J
-                    datosUsuario.lipigas['15'] += this.parseNumber(row[10]) || 0; // Columna K
-                    datosUsuario.lipigas['45'] += this.parseNumber(row[11]) || 0; // Columna L
+                    datosUsuario.lipigas['5'] += this.parseNumber(row[9]) || 0;   // Columna J
+                    datosUsuario.lipigas['11'] += this.parseNumber(row[10]) || 0; // Columna K
+                    datosUsuario.lipigas['15'] += this.parseNumber(row[11]) || 0; // Columna L
+                    datosUsuario.lipigas['45'] += this.parseNumber(row[12]) || 0; // Columna M
                     
-                    datosUsuario.abastible['5'] += this.parseNumber(row[12]) || 0;  // Columna M
-                    datosUsuario.abastible['11'] += this.parseNumber(row[13]) || 0; // Columna N
-                    datosUsuario.abastible['15'] += this.parseNumber(row[14]) || 0; // Columna O
-                    datosUsuario.abastible['45'] += this.parseNumber(row[15]) || 0; // Columna P
+                    datosUsuario.abastible['5'] += this.parseNumber(row[13]) || 0;  // Columna N
+                    datosUsuario.abastible['11'] += this.parseNumber(row[14]) || 0; // Columna O
+                    datosUsuario.abastible['15'] += this.parseNumber(row[15]) || 0; // Columna P
+                    datosUsuario.abastible['45'] += this.parseNumber(row[16]) || 0; // Columna Q
                 }
             }
         }
@@ -473,7 +473,7 @@ class BienestarAPSSystem {
             </div>
 
             <!-- Detalle por Empresa -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
                 
                 <!-- LIPIGAS -->
                 <div style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(14, 165, 233, 0.2); box-shadow: var(--shadow-lg);">
@@ -567,6 +567,61 @@ class BienestarAPSSystem {
                             <div style="color: #c2410c; font-weight: 600; font-size: 0.9rem;">
                                 45 KG
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen Total por Categoría -->
+            <div style="background: linear-gradient(135deg, var(--gray-25), rgba(16, 185, 129, 0.02)); padding: 2rem; border-radius: 1.5rem; border: 1px solid rgba(16, 185, 129, 0.2); box-shadow: var(--shadow-lg);">
+                <h3 style="text-align: center; margin-bottom: 2rem; color: var(--health-primary); font-size: 1.4rem; font-weight: 700;">⚖️ Total por Categoría de Peso</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1.5rem;">
+                    
+                    <div style="text-align: center; padding: 1.5rem; background: var(--white); border-radius: 1rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--health-primary); margin-bottom: 0.5rem;">
+                            ${(couponInfo.lipigas['5'] || 0) + (couponInfo.abastible['5'] || 0)}
+                        </div>
+                        <div style="color: var(--gray-700); font-weight: 600; font-size: 1rem;">
+                            🏺 5 KG TOTAL
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.5rem;">
+                            L: ${couponInfo.lipigas['5'] || 0} | A: ${couponInfo.abastible['5'] || 0}
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 1.5rem; background: var(--white); border-radius: 1rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--health-primary); margin-bottom: 0.5rem;">
+                            ${(couponInfo.lipigas['11'] || 0) + (couponInfo.abastible['11'] || 0)}
+                        </div>
+                        <div style="color: var(--gray-700); font-weight: 600; font-size: 1rem;">
+                            🏺 11 KG TOTAL
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.5rem;">
+                            L: ${couponInfo.lipigas['11'] || 0} | A: ${couponInfo.abastible['11'] || 0}
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 1.5rem; background: var(--white); border-radius: 1rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--health-primary); margin-bottom: 0.5rem;">
+                            ${(couponInfo.lipigas['15'] || 0) + (couponInfo.abastible['15'] || 0)}
+                        </div>
+                        <div style="color: var(--gray-700); font-weight: 600; font-size: 1rem;">
+                            🏺 15 KG TOTAL
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.5rem;">
+                            L: ${couponInfo.lipigas['15'] || 0} | A: ${couponInfo.abastible['15'] || 0}
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 1.5rem; background: var(--white); border-radius: 1rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--health-primary); margin-bottom: 0.5rem;">
+                            ${(couponInfo.lipigas['45'] || 0) + (couponInfo.abastible['45'] || 0)}
+                        </div>
+                        <div style="color: var(--gray-700); font-weight: 600; font-size: 1rem;">
+                            🏺 45 KG TOTAL
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.5rem;">
+                            L: ${couponInfo.lipigas['45'] || 0} | A: ${couponInfo.abastible['45'] || 0}
                         </div>
                     </div>
                 </div>
