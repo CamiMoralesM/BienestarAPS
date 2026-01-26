@@ -268,80 +268,86 @@ class BienestarAPSSystem {
         return this.findUserInBaseDatos(workbook, rut);
     }
 
-    findInGeneralSheet(sheet, rut) {
-        console.log('🔍 Buscando en hoja GENERAL...');
-        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
-        
-        // Variables para sumar múltiples transacciones del mismo RUT
-        let encontrado = false;
-        let datosUsuario = {
-            rut: rut,
-            nombres: '',
-            apellidos: '',
-            establecimiento: '',
-            lipigas: { '5': 0, '11': 0, '15': 0, '45': 0 },
-            abastible: { '5': 0, '11': 0, '15': 0, '45': 0 },
-            usadoEnElMes: 0,
-            disponible: 4
-        };
-        
-        // Buscar TODAS las filas que coincidan con el RUT
-        for (let i = 5; i < jsonData.length; i++) {
-            const row = jsonData[i];
-            if (row && row[4]) { // Columna E (índice 4) - RUT
-                const rutEnFila = String(row[4]).trim();
-                const rutNormalizado = this.normalizeRUT(rutEnFila);
-                
-                if (rutNormalizado === rut) {
-                    console.log(`✅ RUT encontrado en GENERAL fila ${i + 1}`);
-                    encontrado = true;
-                    
-                    // PRIMERA VEZ: Guardar datos básicos del usuario
-                    if (!datosUsuario.nombres) {
-                        datosUsuario.nombres = row[5] || '';     // Columna F
-                        datosUsuario.apellidos = row[6] || '';   // Columna G
-                        datosUsuario.establecimiento = row[7] || ''; // Columna H
-                        datosUsuario.usadoEnElMes = this.parseNumber(row[31]) || 0; // Columna AF
-                        datosUsuario.disponible = this.parseNumber(row[32]) || 4;   // Columna AG ← DIRECTO
-                    }
-                    
-                    // SIEMPRE: Sumar cupones de esta transacción
-                    datosUsuario.lipigas['5'] += this.parseNumber(row[9]) || 0;   // Columna J
-                    datosUsuario.lipigas['11'] += this.parseNumber(row[10]) || 0; // Columna K
-                    datosUsuario.lipigas['15'] += this.parseNumber(row[11]) || 0; // Columna L
-                    datosUsuario.lipigas['45'] += this.parseNumber(row[12]) || 0; // Columna M
-                    
-                    datosUsuario.abastible['5'] += this.parseNumber(row[13]) || 0;  // Columna N
-                    datosUsuario.abastible['11'] += this.parseNumber(row[14]) || 0; // Columna O
-                    datosUsuario.abastible['15'] += this.parseNumber(row[15]) || 0; // Columna P
-                    datosUsuario.abastible['45'] += this.parseNumber(row[16]) || 0; // Columna Q
+findInGeneralSheet(sheet, rut) {
+    console.log('🔍 Buscando en hoja GENERAL...');
+    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
+
+    let encontrado = false;
+
+    let datosUsuario = {
+        rut: rut,
+        nombres: '',
+        apellidos: '',
+        establecimiento: '',
+        lipigas: { '5': 0, '11': 0, '15': 0, '45': 0 },
+        abastible: { '5': 0, '11': 0, '15': 0, '45': 0 },
+        usadoEnElMes: 0,
+        disponible: 4
+    };
+
+    for (let i = 5; i < jsonData.length; i++) {
+        const row = jsonData[i];
+
+        if (row && row[4]) { // Columna E - RUT
+            const rutEnFila = String(row[4]).trim();
+            const rutNormalizado = this.normalizeRUT(rutEnFila);
+
+            if (rutNormalizado === rut) {
+                encontrado = true;
+                console.log(`✅ RUT encontrado en GENERAL fila ${i + 1}`);
+
+                // Guardar datos solo la primera vez
+                if (!datosUsuario.nombres) {
+                    datosUsuario.nombres = row[5] || '';
+                    datosUsuario.apellidos = row[6] || '';
+                    datosUsuario.establecimiento = row[7] || '';
+
+                    // AF - USADO EN EL MES
+                    const usadoExcel = this.parseNumber(row[31]);
+                    datosUsuario.usadoEnElMes = Number.isFinite(usadoExcel) ? usadoExcel : 0;
+
+                    // AG - DISPONIBLE (AQUÍ ESTABA EL ERROR)
+                    const disponibleExcel = this.parseNumber(row[32]);
+                    datosUsuario.disponible = Number.isFinite(disponibleExcel)
+                        ? disponibleExcel
+                        : 4;
                 }
+
+                // Sumar cupones Lipigas
+                datosUsuario.lipigas['5'] += this.parseNumber(row[9]) || 0;
+                datosUsuario.lipigas['11'] += this.parseNumber(row[10]) || 0;
+                datosUsuario.lipigas['15'] += this.parseNumber(row[11]) || 0;
+                datosUsuario.lipigas['45'] += this.parseNumber(row[12]) || 0;
+
+                // Sumar cupones Abastible
+                datosUsuario.abastible['5'] += this.parseNumber(row[13]) || 0;
+                datosUsuario.abastible['11'] += this.parseNumber(row[14]) || 0;
+                datosUsuario.abastible['15'] += this.parseNumber(row[15]) || 0;
+                datosUsuario.abastible['45'] += this.parseNumber(row[16]) || 0;
             }
         }
-        
-        if (encontrado) {
-            console.log(`✅ Total transacciones sumadas para RUT ${rut}:`);
-            console.log(`📊 USADO EN EL MES: ${datosUsuario.usadoEnElMes}`);
-            console.log(`📊 DISPONIBLE: ${datosUsuario.disponible}`);
-            console.log(`⛽ LIPIGAS Total:`, datosUsuario.lipigas);
-            console.log(`🔥 ABASTIBLE Total:`, datosUsuario.abastible);
-            
-            return {
-                encontrado: true,
-                rut: datosUsuario.rut,
-                nombres: datosUsuario.nombres,
-                apellidos: datosUsuario.apellidos,
-                establecimiento: datosUsuario.establecimiento,
-                lipigas: datosUsuario.lipigas,
-                abastible: datosUsuario.abastible,
-                usadoEnElMes: datosUsuario.usadoEnElMes,
-                disponible: datosUsuario.disponible
-            };
-        }
-        
+    }
+
+    if (!encontrado) {
         console.log('❌ RUT no encontrado en hoja GENERAL');
         return null;
     }
+
+    console.log(`📊 USADO EN EL MES: ${datosUsuario.usadoEnElMes}`);
+    console.log(`📊 DISPONIBLE: ${datosUsuario.disponible}`);
+
+    return {
+        encontrado: true,
+        rut: datosUsuario.rut,
+        nombres: datosUsuario.nombres,
+        apellidos: datosUsuario.apellidos,
+        establecimiento: datosUsuario.establecimiento,
+        lipigas: datosUsuario.lipigas,
+        abastible: datosUsuario.abastible,
+        usadoEnElMes: datosUsuario.usadoEnElMes,
+        disponible: datosUsuario.disponible
+    };
+}
 
     findInCuponesDisponibles(sheet, rut) {
         console.log('🔍 Buscando en hoja CUPONES DISPONIBLES...');
