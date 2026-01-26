@@ -61,6 +61,10 @@
 
     <!-- Main Container -->
     <main class="main-container">
+        
+        <!-- Estado de Datos de Google Sheets -->
+        <div id="dataStatus" class="alert" style="display: none; margin-bottom: 2rem;"></div>
+        
         <!-- Search Section -->
         <section class="search-section">
             <div class="search-card">
@@ -118,7 +122,7 @@
                         <div class="instruction-number">3</div>
                         <div class="instruction-content">
                             <h4>Ver Disponibilidad</h4>
-                            <p>El sistema mostrará instantáneamente sus cupones usados y disponibles</p>
+                            <p>El sistema mostrará instantáneamente sus cupones usados y disponibles actualizados desde Google Sheets</p>
                         </div>
                     </div>
                 </div>
@@ -126,7 +130,7 @@
         </section>
     </main>
 
-    <!-- Admin Login Modal - MEJORADO CON SCROLL -->
+    <!-- Admin Login Modal - ACTUALIZADO PARA GOOGLE SHEETS -->
     <div id="adminLoginModal" class="modal">
         <div class="modal-content modal-scrollable">
             <div class="modal-header">
@@ -159,7 +163,7 @@
                     <div id="loginError" class="alert alert-error" style="display: none;"></div>
                 </div>
 
-                <!-- Admin Panel - CON SCROLL MEJORADO -->
+                <!-- Admin Panel - ACTUALIZADO PARA GOOGLE SHEETS -->
                 <div id="adminPanel" class="admin-panel admin-panel-scrollable">
                     <div class="admin-welcome">
                         <p class="welcome-text">✅ Acceso autorizado</p>
@@ -170,89 +174,51 @@
                         <button id="logoutBtn" class="logout-btn">
                             🚪 Cerrar Sesión
                         </button>
-                        <button id="changePasswordBtn" class="change-password-btn">
-                            🔑 Cambiar Contraseña
+                        <button id="refreshBtn" class="change-password-btn">
+                            🔄 Refrescar Datos
                         </button>
                     </div>
 
                     <div class="admin-section-content">
-                        <h4>📊 Gestión de Archivos Excel</h4>
+                        <h4>📊 Sistema Google Sheets</h4>
                         <p class="section-description">
-                            Suba aquí el archivo Excel con los datos de cupones. 
-                            El archivo se almacenará en Firebase Storage para acceso desde cualquier dispositivo.
+                            El sistema está conectado directamente a Google Sheets. 
+                            Los datos se actualizan automáticamente cuando editas el archivo en línea.
                         </p>
                         
                         <div class="file-upload-section">
-                            <input type="file" id="excelFile" accept=".xlsx,.xls" class="file-input">
-                            <label for="excelFile" class="file-label">
-                                <span class="file-icon">📄</span>
-                                Seleccionar Archivo Excel
-                                <small>Compatible con .xlsx y .xls</small>
-                            </label>
-                            <button id="uploadBtn" class="upload-btn" disabled>
-                                <span class="btn-icon">☁️</span>
-                                Subir a Firebase
-                            </button>
+                            <div style="text-align: center; padding: 2rem;">
+                                <h3 style="color: var(--health-success); margin-bottom: 1rem;">📊 Conectado a Google Sheets</h3>
+                                <p style="color: var(--gray-600); margin-bottom: 2rem;">
+                                    Los datos se actualizan automáticamente desde tu Google Sheets.
+                                    No necesitas subir archivos.
+                                </p>
+                                <button id="uploadBtn" class="upload-btn">
+                                    <span class="btn-icon">ℹ️</span>
+                                    Ver Información del Sistema
+                                </button>
+                            </div>
                         </div>
                         
                         <div class="current-files">
-                            <h5>📁 Archivo Actual en la Nube</h5>
+                            <h5>📁 Estado del Sistema</h5>
                             <div id="filesList" class="files-list">
-                                <p class="no-files">No hay archivos cargados</p>
+                                <p class="no-files">Cargando información...</p>
                             </div>
                         </div>
 
                         <div class="admin-info">
-                            <h5>ℹ️ Información del Sistema</h5>
+                            <h5>ℹ️ Información del Sistema Google Sheets</h5>
                             <ul>
-                                <li>📊 <strong>Hoja requerida:</strong> CUPONES DISPONIBLES</li>
-                                <li>📝 <strong>Celdas de lectura:</strong> C5 (RUT), D5 (Nombres), E5 (Apellidos)</li>
-                                <li>⛽ <strong>Datos Lipigas:</strong> F5, G5, H5, I5 (5kg, 11kg, 15kg, 45kg)</li>
-                                <li>🔥 <strong>Datos Abastible:</strong> J5, K5, L5, M5 (5kg, 11kg, 15kg, 45kg)</li>
-                                <li>📈 <strong>Estados:</strong> N5 (Usado), O5 (Disponible)</li>
-                                <li>☁️ <strong>Almacenamiento:</strong> Firebase Cloud Storage</li>
+                                <li>📊 <strong>Fuente de datos:</strong> Google Sheets (actualización automática)</li>
+                                <li>📝 <strong>Estructura:</strong> CUPONES DISPONIBLES y BASE DE DATOS</li>
+                                <li>⚡ <strong>Actualización:</strong> Inmediata al editar Google Sheets</li>
+                                <li>🔄 <strong>Cache:</strong> Datos guardados localmente por 5 minutos</li>
+                                <li>📱 <strong>Acceso:</strong> Desde cualquier dispositivo</li>
+                                <li>☁️ <strong>Almacenamiento:</strong> Google Drive (sin costo)</li>
                             </ul>
                         </div>
                     </div>
-                </div>
-
-                <!-- Change Password Form -->
-                <div id="changePasswordForm" class="login-form" style="display: none;">
-                    <h4 class="form-title">🔑 Cambiar Contraseña</h4>
-                    <div class="input-group">
-                        <label for="currentPassword" class="input-label">Contraseña Actual</label>
-                        <input 
-                            type="password" 
-                            id="currentPassword" 
-                            placeholder="Contraseña actual"
-                        >
-                    </div>
-                    <div class="input-group">
-                        <label for="newPassword" class="input-label">Nueva Contraseña</label>
-                        <input 
-                            type="password" 
-                            id="newPassword" 
-                            placeholder="Nueva contraseña"
-                        >
-                    </div>
-                    <div class="input-group">
-                        <label for="confirmPassword" class="input-label">Confirmar Nueva Contraseña</label>
-                        <input 
-                            type="password" 
-                            id="confirmPassword" 
-                            placeholder="Confirmar contraseña"
-                        >
-                    </div>
-                    <div class="form-actions">
-                        <button id="updatePasswordBtn" class="login-btn">
-                            ✅ Actualizar Contraseña
-                        </button>
-                        <button id="cancelPasswordBtn" class="change-password-btn">
-                            ❌ Cancelar
-                        </button>
-                    </div>
-                    <div id="passwordError" class="alert alert-error" style="display: none;"></div>
-                    <div id="passwordSuccess" class="alert alert-success" style="display: none;"></div>
                 </div>
             </div>
         </div>
@@ -268,6 +234,6 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="script-firebase-fixed.js"></script>
+    <script src="script-google-sheets-final.js"></script>
 </body>
 </html>
