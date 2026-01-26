@@ -467,7 +467,7 @@ findInGeneralSheet(sheet, rut) {
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
                     <div style="text-align: center; padding: 2rem; background: rgba(239, 68, 68, 0.05); border-radius: 1.5rem; border: 2px solid rgba(239, 68, 68, 0.1);">
                         <div style="font-size: 3rem; font-weight: 800; color: var(--health-error); margin-bottom: 0.5rem; font-family: var(--font-display);">
-                            ${couponInfo.usadoEnElMes || 0}
+                           ${couponInfo.usadoEnElMes ?? 0}
                         </div>
                         <div style="color: var(--health-error); font-weight: 600; font-size: 1.2rem;">
                             USADO EN EL MES
@@ -476,7 +476,7 @@ findInGeneralSheet(sheet, rut) {
                     
                     <div style="text-align: center; padding: 2rem; background: rgba(34, 197, 94, 0.05); border-radius: 1.5rem; border: 2px solid rgba(34, 197, 94, 0.1);">
                         <div style="font-size: 3rem; font-weight: 800; color: var(--health-success); margin-bottom: 0.5rem; font-family: var(--font-display);">
-                            ${couponInfo.disponible || 4}
+                             ${couponInfo.usadoEnElMes ?? 0}
                         </div>
                         <div style="color: var(--health-success); font-weight: 600; font-size: 1.2rem;">
                             DISPONIBLE
