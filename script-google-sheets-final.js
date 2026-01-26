@@ -8,10 +8,8 @@ class BienestarAPSSystem {
         this.currentUser = null;
         this.currentWorkbook = null;
         this.selectedFile = null;
-        // TU GOOGLE SHEETS - URL CORRECTA QUE FUNCIONABA ANTES
+        // TU GOOGLE SHEETS - Se actualiza automáticamente cuando editas online
         this.EXCEL_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTlgHF7u5CO6n4jaVol3Ov9a1jwgwyGg_ev3Gu3M1Q0fakiRhDDukjByTUjleeIPQ/pub?output=xlsx';
-        // URL de backup para móviles  
-        this.BACKUP_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTlgHF7u5CO6n4jaVol3Gu3M1Q0fakiRhDDukjByTUjleeIPQ/pub?output=csv';
         this.init();
     }
 
@@ -47,7 +45,6 @@ class BienestarAPSSystem {
     async loadExcelFromGoogleSheets() {
         try {
             console.log('📊 Descargando datos desde Google Sheets...');
-            console.log('🔗 URL a usar:', this.EXCEL_URL);
             
             // Intentar caché reciente primero (5 minutos)
             const cachedData = localStorage.getItem('gasSystemData');
@@ -60,26 +57,19 @@ class BienestarAPSSystem {
                 }
             }
 
-            // Descargar desde Google Sheets - MÉTODO SIMPLE QUE FUNCIONABA
-            console.log('🌐 Iniciando descarga desde Google Sheets...');
+            // Descargar desde Google Sheets
             const response = await fetch(this.EXCEL_URL, {
                 method: 'GET',
                 mode: 'cors',
-                cache: 'no-cache'
+                cache: 'no-cache' // Siempre obtener la versión más reciente
             });
 
-            console.log('📡 Respuesta:', response.status, response.statusText);
-
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                throw new Error(`HTTP ${response.status}: No se puede acceder a Google Sheets`);
             }
 
-            console.log('📊 Procesando archivo Excel...');
             const arrayBuffer = await response.arrayBuffer();
-            console.log('📏 Tamaño archivo:', arrayBuffer.byteLength, 'bytes');
-            
             const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
-            console.log('📋 Hojas encontradas:', workbook.SheetNames);
             
             this.currentWorkbook = workbook;
             
@@ -87,7 +77,7 @@ class BienestarAPSSystem {
             const fileData = {
                 name: 'cupones-gas-data.xlsx',
                 downloadDate: new Date().toISOString(),
-                source: 'google-sheets-pub',
+                source: 'google-sheets',
                 url: this.EXCEL_URL,
                 workbook: workbook
             };
@@ -105,130 +95,6 @@ class BienestarAPSSystem {
             this.showDataStatus(false, error.message);
             return hasOldCache;
         }
-    }
-
-    async downloadWithTimeout(url, timeout, type) {
-        try {
-            console.log(`📡 DIAGNÓSTICO: Intentando descargar ${type}`);
-            console.log(`🔗 URL completa: ${url}`);
-            console.log(`⏱️ Timeout configurado: ${timeout}ms`);
-            
-            // Crear promise con timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => {
-                console.log('⏱️ TIMEOUT: Cancelando descarga por tiempo excedido');
-                controller.abort();
-            }, timeout);
-            
-            console.log('📡 Iniciando fetch...');
-            const response = await fetch(url, {
-                method: 'GET',
-                mode: 'cors',
-                cache: 'no-cache',
-                signal: controller.signal,
-                headers: {
-                    'Accept': type === 'XLSX' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'text/csv',
-                    'User-Agent': navigator.userAgent
-                }
-            });
-            
-            clearTimeout(timeoutId);
-            
-            console.log(`📊 Respuesta recibida:`);
-            console.log(`   Status: ${response.status} ${response.statusText}`);
-            console.log(`   Content-Type: ${response.headers.get('content-type')}`);
-            console.log(`   Content-Length: ${response.headers.get('content-length')}`);
-            
-            // Diagnóstico específico de errores
-            if (!response.ok) {
-                let errorDetails = `HTTP ${response.status}: ${response.statusText}`;
-                
-                switch (response.status) {
-                    case 400:
-                        errorDetails += '\n❌ URL mal formada o parámetros incorrectos';
-                        console.log('🔍 Verificar que el Google Sheets sea público');
-                        console.log('🔍 Verificar que el ID del documento sea correcto');
-                        break;
-                    case 403:
-                        errorDetails += '\n❌ Google Sheets no es público o sin permisos';
-                        console.log('🔍 Hacer el Google Sheets público: Compartir → Cualquier persona con el enlace');
-                        break;
-                    case 404:
-                        errorDetails += '\n❌ Google Sheets no encontrado';
-                        console.log('🔍 Verificar que el ID del documento sea correcto');
-                        break;
-                    default:
-                        errorDetails += '\n❌ Error del servidor de Google';
-                }
-                
-                throw new Error(errorDetails);
-            }
-
-            console.log('✅ Respuesta OK, procesando datos...');
-            let workbook;
-            
-            if (type === 'CSV') {
-                console.log('📝 Procesando como CSV...');
-                const csvText = await response.text();
-                console.log(`📏 CSV recibido: ${csvText.length} caracteres`);
-                console.log(`📄 Primeras líneas: ${csvText.substring(0, 200)}...`);
-                workbook = this.csvToWorkbook(csvText);
-            } else {
-                console.log('📊 Procesando como XLSX...');
-                const arrayBuffer = await response.arrayBuffer();
-                console.log(`📏 XLSX recibido: ${arrayBuffer.byteLength} bytes`);
-                workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
-            }
-            
-            console.log('📋 Hojas encontradas:', workbook.SheetNames);
-            this.currentWorkbook = workbook;
-            
-            // Guardar en caché con timestamp
-            const fileData = {
-                name: 'cupones-gas-data.' + type.toLowerCase(),
-                downloadDate: new Date().toISOString(),
-                source: 'google-sheets',
-                type: type,
-                url: url,
-                workbook: workbook
-            };
-            
-            try {
-                localStorage.setItem('gasSystemData', JSON.stringify(fileData));
-                console.log('💾 Datos guardados en caché local');
-            } catch (storageError) {
-                console.warn('⚠️ No se pudo guardar en caché:', storageError.message);
-            }
-            
-            console.log(`✅ Descarga ${type} completada exitosamente`);
-            this.showDataStatus(true);
-            return true;
-            
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                console.error('⏱️ TIMEOUT: Conexión demasiado lenta');
-                throw new Error('Conexión muy lenta - intenta de nuevo');
-            }
-            
-            console.error(`❌ ERROR DESCARGANDO ${type}:`);
-            console.error(`   Mensaje: ${error.message}`);
-            console.error(`   Tipo: ${error.name}`);
-            console.error(`   Stack: ${error.stack}`);
-            
-            throw error;
-        }
-    }
-
-    csvToWorkbook(csvText) {
-        // Convertir CSV a formato workbook para compatibilidad móvil
-        const lines = csvText.split('\n');
-        const data = lines.map(line => line.split(',').map(cell => cell.trim().replace(/"/g, '')));
-        
-        const ws = XLSX.utils.aoa_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'GENERAL');
-        
-        return wb;
     }
 
     isRecentCache(downloadDate, minutes = 5) {
@@ -283,9 +149,6 @@ class BienestarAPSSystem {
         const rutInput = document.getElementById('rutInput');
         const rut = rutInput.value.trim();
 
-        console.log('\n🔍 ===== DIAGNÓSTICO COMPLETO DE BÚSQUEDA =====');
-        console.log('📝 RUT ingresado:', rut);
-
         if (!rut) {
             this.showAlert('📝 Por favor ingrese un RUT', 'error');
             rutInput.focus();
@@ -311,50 +174,8 @@ class BienestarAPSSystem {
                 }
             }
 
-            // DIAGNÓSTICO COMPLETO DEL EXCEL
-            console.log('\n📊 ===== ANÁLISIS COMPLETO DEL EXCEL =====');
-            console.log('📋 Hojas disponibles:', this.currentWorkbook.SheetNames);
-            
-            // Analizar cada hoja
-            this.currentWorkbook.SheetNames.forEach((sheetName, index) => {
-                console.log(`\n📄 HOJA ${index + 1}: "${sheetName}"`);
-                const sheet = this.currentWorkbook.Sheets[sheetName];
-                const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
-                
-                console.log(`   📏 Filas totales: ${jsonData.length}`);
-                console.log(`   📋 Primeras 5 filas:`, jsonData.slice(0, 5));
-                
-                // Buscar RUTs en diferentes columnas
-                let rutCount = 0;
-                const rutColumns = [];
-                
-                for (let i = 0; i < Math.min(jsonData.length, 20); i++) {
-                    const row = jsonData[i];
-                    if (row) {
-                        // Buscar en todas las columnas
-                        for (let col = 0; col < row.length; col++) {
-                            if (row[col] && this.looksLikeRUT(row[col])) {
-                                rutCount++;
-                                if (!rutColumns.includes(col)) {
-                                    rutColumns.push(col);
-                                }
-                                console.log(`   🔍 RUT encontrado fila ${i+1}, columna ${String.fromCharCode(65+col)}: "${row[col]}"`);
-                            }
-                        }
-                    }
-                }
-                
-                console.log(`   📈 Total RUTs encontrados: ${rutCount}`);
-                console.log(`   📍 Columnas con RUTs: ${rutColumns.map(c => String.fromCharCode(65+c)).join(', ')}`);
-            });
-
             const normalizedRUT = this.normalizeRUT(rut);
-            console.log('\n🔧 RUT normalizado para búsqueda:', normalizedRUT);
-            
             const couponInfo = this.findCouponInfoInExcel(this.currentWorkbook, normalizedRUT);
-            
-            console.log('\n📋 Resultado final de búsqueda:', couponInfo);
-            console.log('===== FIN DIAGNÓSTICO =====\n');
             
             this.displaySimplifiedResults(couponInfo);
             this.showLoading(false);
@@ -364,14 +185,6 @@ class BienestarAPSSystem {
             this.showAlert('❌ Error al procesar la búsqueda', 'error');
             this.showLoading(false);
         }
-    }
-
-    // Función helper para detectar si algo parece un RUT
-    looksLikeRUT(value) {
-        if (!value) return false;
-        const str = String(value).trim();
-        // Patrón básico: 7-8 dígitos, seguido de - y dígito o K
-        return /^\d{7,8}-[\dkK]$/.test(str);
     }
 
     shouldRefreshData() {
@@ -455,80 +268,86 @@ class BienestarAPSSystem {
         return this.findUserInBaseDatos(workbook, rut);
     }
 
-    findInGeneralSheet(sheet, rut) {
-        console.log('🔍 Buscando en hoja GENERAL...');
-        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
-        
-        // Variables para sumar múltiples transacciones del mismo RUT
-        let encontrado = false;
-        let datosUsuario = {
-            rut: rut,
-            nombres: '',
-            apellidos: '',
-            establecimiento: '',
-            lipigas: { '5': 0, '11': 0, '15': 0, '45': 0 },
-            abastible: { '5': 0, '11': 0, '15': 0, '45': 0 },
-            usadoEnElMes: 0,
-            disponible: 4
-        };
-        
-        // Buscar TODAS las filas que coincidan con el RUT
-        for (let i = 5; i < jsonData.length; i++) {
-            const row = jsonData[i];
-            if (row && row[3]) { // Columna D (índice 3) - RUT AFILIADO
-                const rutEnFila = String(row[3]).trim();
-                const rutNormalizado = this.normalizeRUT(rutEnFila);
-                
-                if (rutNormalizado === rut) {
-                    console.log(`✅ RUT encontrado en GENERAL fila ${i + 1}`);
-                    encontrado = true;
-                    
-                    // PRIMERA VEZ: Guardar datos básicos del usuario
-                    if (!datosUsuario.nombres) {
-                        datosUsuario.nombres = row[4] || '';     // Columna E (NOMBRES)
-                        datosUsuario.apellidos = row[5] || '';   // Columna F (APELLIDOS)
-                        datosUsuario.establecimiento = row[6] || ''; // Columna G (CENTRO)
-                        datosUsuario.usadoEnElMes = this.parseNumber(row[22]) || 0; // Columna W (USADO EN EL MES)
-                        datosUsuario.disponible = this.parseNumber(row[23]) || 0;   // Columna X (DISPONIBLE)
-                    }
-                    
-                    // SIEMPRE: Sumar cupones de esta transacción
-                    datosUsuario.lipigas['5'] += this.parseNumber(row[8]) || 0;   // Columna I
-                    datosUsuario.lipigas['11'] += this.parseNumber(row[9]) || 0;  // Columna J
-                    datosUsuario.lipigas['15'] += this.parseNumber(row[10]) || 0; // Columna K
-                    datosUsuario.lipigas['45'] += this.parseNumber(row[11]) || 0; // Columna L
-                    
-                    datosUsuario.abastible['5'] += this.parseNumber(row[12]) || 0;  // Columna M
-                    datosUsuario.abastible['11'] += this.parseNumber(row[13]) || 0; // Columna N
-                    datosUsuario.abastible['15'] += this.parseNumber(row[14]) || 0; // Columna O
-                    datosUsuario.abastible['45'] += this.parseNumber(row[15]) || 0; // Columna P
+findInGeneralSheet(sheet, rut) {
+    console.log('🔍 Buscando en hoja GENERAL...');
+    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
+
+    let encontrado = false;
+
+    let datosUsuario = {
+        rut: rut,
+        nombres: '',
+        apellidos: '',
+        establecimiento: '',
+        lipigas: { '5': 0, '11': 0, '15': 0, '45': 0 },
+        abastible: { '5': 0, '11': 0, '15': 0, '45': 0 },
+        usadoEnElMes: 0,
+        disponible: 4
+    };
+
+    for (let i = 5; i < jsonData.length; i++) {
+        const row = jsonData[i];
+
+        if (row && row[4]) { // Columna E - RUT
+            const rutEnFila = String(row[4]).trim();
+            const rutNormalizado = this.normalizeRUT(rutEnFila);
+
+            if (rutNormalizado === rut) {
+                encontrado = true;
+                console.log(`✅ RUT encontrado en GENERAL fila ${i + 1}`);
+
+                // Guardar datos solo la primera vez
+                if (!datosUsuario.nombres) {
+                    datosUsuario.nombres = row[5] || '';
+                    datosUsuario.apellidos = row[6] || '';
+                    datosUsuario.establecimiento = row[7] || '';
+
+                    // AF - USADO EN EL MES
+                    const usadoExcel = this.parseNumber(row[31]);
+                    datosUsuario.usadoEnElMes = Number.isFinite(usadoExcel) ? usadoExcel : 0;
+
+                    // AG - DISPONIBLE (AQUÍ ESTABA EL ERROR)
+                    const disponibleExcel = this.parseNumber(row[32]);
+                    datosUsuario.disponible = Number.isFinite(disponibleExcel)
+                        ? disponibleExcel
+                        : 4;
                 }
+
+                // Sumar cupones Lipigas
+                datosUsuario.lipigas['5'] += this.parseNumber(row[9]) || 0;
+                datosUsuario.lipigas['11'] += this.parseNumber(row[10]) || 0;
+                datosUsuario.lipigas['15'] += this.parseNumber(row[11]) || 0;
+                datosUsuario.lipigas['45'] += this.parseNumber(row[12]) || 0;
+
+                // Sumar cupones Abastible
+                datosUsuario.abastible['5'] += this.parseNumber(row[13]) || 0;
+                datosUsuario.abastible['11'] += this.parseNumber(row[14]) || 0;
+                datosUsuario.abastible['15'] += this.parseNumber(row[15]) || 0;
+                datosUsuario.abastible['45'] += this.parseNumber(row[16]) || 0;
             }
         }
-        
-        if (encontrado) {
-            console.log(`✅ Total transacciones sumadas para RUT ${rut}:`);
-            console.log(`📊 USADO EN EL MES: ${datosUsuario.usadoEnElMes}`);
-            console.log(`📊 DISPONIBLE: ${datosUsuario.disponible}`);
-            console.log(`⛽ LIPIGAS Total:`, datosUsuario.lipigas);
-            console.log(`🔥 ABASTIBLE Total:`, datosUsuario.abastible);
-            
-            return {
-                encontrado: true,
-                rut: datosUsuario.rut,
-                nombres: datosUsuario.nombres,
-                apellidos: datosUsuario.apellidos,
-                establecimiento: datosUsuario.establecimiento,
-                lipigas: datosUsuario.lipigas,
-                abastible: datosUsuario.abastible,
-                usadoEnElMes: datosUsuario.usadoEnElMes,
-                disponible: datosUsuario.disponible
-            };
-        }
-        
+    }
+
+    if (!encontrado) {
         console.log('❌ RUT no encontrado en hoja GENERAL');
         return null;
     }
+
+    console.log(`📊 USADO EN EL MES: ${datosUsuario.usadoEnElMes}`);
+    console.log(`📊 DISPONIBLE: ${datosUsuario.disponible}`);
+
+    return {
+        encontrado: true,
+        rut: datosUsuario.rut,
+        nombres: datosUsuario.nombres,
+        apellidos: datosUsuario.apellidos,
+        establecimiento: datosUsuario.establecimiento,
+        lipigas: datosUsuario.lipigas,
+        abastible: datosUsuario.abastible,
+        usadoEnElMes: datosUsuario.usadoEnElMes,
+        disponible: datosUsuario.disponible
+    };
+}
 
     findInCuponesDisponibles(sheet, rut) {
         console.log('🔍 Buscando en hoja CUPONES DISPONIBLES...');
@@ -600,170 +419,118 @@ class BienestarAPSSystem {
 
         return null;
     }
+displaySimplifiedResults(couponInfo) {
+    const resultsSection = document.getElementById('resultsSection');
+    const resultsContent = document.getElementById('resultsContent');
 
-    displaySimplifiedResults(couponInfo) {
-        const resultsSection = document.getElementById('resultsSection');
-        const resultsContent = document.getElementById('resultsContent');
-
-        if (!couponInfo || !couponInfo.encontrado) {
-            resultsContent.innerHTML = `
-                <div style="text-align: center; padding: 3rem; color: var(--health-error);">
-                    <h3 style="margin-bottom: 1rem; font-size: 1.5rem;">🔍 RUT no encontrado</h3>
-                    <p style="color: var(--gray-600);">El RUT ingresado no se encuentra en la base de datos.</p>
-                </div>
-            `;
-            resultsSection.style.display = 'block';
-            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            return;
-        }
-
-        // Calcular totales usados por empresa
-        const lipigasUsados = (couponInfo.lipigas['5'] || 0) + (couponInfo.lipigas['11'] || 0) + 
-                             (couponInfo.lipigas['15'] || 0) + (couponInfo.lipigas['45'] || 0);
-        const abastibleUsados = (couponInfo.abastible['5'] || 0) + (couponInfo.abastible['11'] || 0) + 
-                               (couponInfo.abastible['15'] || 0) + (couponInfo.abastible['45'] || 0);
-
-        const html = `
-            <!-- Información del Usuario -->
-            <div style="background: linear-gradient(135deg, var(--gray-25), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-md); margin-bottom: 2rem;">
-                <div style="font-size: 1.5rem; font-weight: 700; color: var(--health-primary); margin-bottom: 1rem; font-family: var(--font-display); text-align: center;">
-                    ${couponInfo.nombres} ${couponInfo.apellidos}
-                </div>
-                <div style="text-align: center; color: var(--gray-600); font-size: 1rem;">
-                    <strong>RUT:</strong> ${couponInfo.rut}
-                    ${couponInfo.establecimiento ? `<br><strong>Centro:</strong> ${couponInfo.establecimiento}` : ''}
-                </div>
-            </div>
-
-            <!-- Resumen General -->
-            <div style="background: linear-gradient(135deg, var(--white), var(--gray-25)); padding: 2.5rem; border-radius: 1.5rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-lg); margin-bottom: 2rem;">
-                <h3 style="text-align: center; margin-bottom: 2rem; color: var(--gray-800); font-size: 1.4rem; font-weight: 700;">📊 Resumen General</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
-                    <div style="text-align: center; padding: 2rem; background: rgba(239, 68, 68, 0.05); border-radius: 1.5rem; border: 2px solid rgba(239, 68, 68, 0.1);">
-                        <div style="font-size: 3rem; font-weight: 800; color: var(--health-error); margin-bottom: 0.5rem; font-family: var(--font-display);">
-                            ${couponInfo.usadoEnElMes || 0}
-                        </div>
-                        <div style="color: var(--health-error); font-weight: 600; font-size: 1.2rem;">
-                            USADO EN EL MES
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: center; padding: 2rem; background: rgba(34, 197, 94, 0.05); border-radius: 1.5rem; border: 2px solid rgba(34, 197, 94, 0.1);">
-                        <div style="font-size: 3rem; font-weight: 800; color: var(--health-success); margin-bottom: 0.5rem; font-family: var(--font-display);">
-                            ${couponInfo.disponible || 4}
-                        </div>
-                        <div style="color: var(--health-success); font-weight: 600; font-size: 1.2rem;">
-                            DISPONIBLE
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Detalle por Empresa -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
-                
-                <!-- LIPIGAS -->
-                <div style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(14, 165, 233, 0.2); box-shadow: var(--shadow-lg);">
-                    <div style="text-align: center; margin-bottom: 2rem;">
-                        <h3 style="color: #0ea5e9; font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">⛽ LIPIGAS</h3>
-                        <div style="font-size: 2rem; font-weight: 700; color: #0ea5e9;">
-                            Total Usado: ${lipigasUsados}
-                        </div>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                        <div style="text-align: center; padding: 1.5rem; background: rgba(14, 165, 233, 0.1); border-radius: 1rem;">
-                            <div style="font-size: 1.8rem; font-weight: 700; color: #0ea5e9; margin-bottom: 0.5rem;">
-                                ${couponInfo.lipigas['5'] || 0}
-                            </div>
-                            <div style="color: #0369a1; font-weight: 600; font-size: 0.9rem;">
-                                5 KG
-                            </div>
-                        </div>
-                        
-                        <div style="text-align: center; padding: 1.5rem; background: rgba(14, 165, 233, 0.1); border-radius: 1rem;">
-                            <div style="font-size: 1.8rem; font-weight: 700; color: #0ea5e9; margin-bottom: 0.5rem;">
-                                ${couponInfo.lipigas['11'] || 0}
-                            </div>
-                            <div style="color: #0369a1; font-weight: 600; font-size: 0.9rem;">
-                                11 KG
-                            </div>
-                        </div>
-                        
-                        <div style="text-align: center; padding: 1.5rem; background: rgba(14, 165, 233, 0.1); border-radius: 1rem;">
-                            <div style="font-size: 1.8rem; font-weight: 700; color: #0ea5e9; margin-bottom: 0.5rem;">
-                                ${couponInfo.lipigas['15'] || 0}
-                            </div>
-                            <div style="color: #0369a1; font-weight: 600; font-size: 0.9rem;">
-                                15 KG
-                            </div>
-                        </div>
-                        
-                        <div style="text-align: center; padding: 1.5rem; background: rgba(14, 165, 233, 0.1); border-radius: 1rem;">
-                            <div style="font-size: 1.8rem; font-weight: 700; color: #0ea5e9; margin-bottom: 0.5rem;">
-                                ${couponInfo.lipigas['45'] || 0}
-                            </div>
-                            <div style="color: #0369a1; font-weight: 600; font-size: 0.9rem;">
-                                45 KG
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ABASTIBLE -->
-                <div style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(249, 115, 22, 0.2); box-shadow: var(--shadow-lg);">
-                    <div style="text-align: center; margin-bottom: 2rem;">
-                        <h3 style="color: #f97316; font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">🔥 ABASTIBLE</h3>
-                        <div style="font-size: 2rem; font-weight: 700; color: #f97316;">
-                            Total Usado: ${abastibleUsados}
-                        </div>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                        <div style="text-align: center; padding: 1.5rem; background: rgba(249, 115, 22, 0.1); border-radius: 1rem;">
-                            <div style="font-size: 1.8rem; font-weight: 700; color: #f97316; margin-bottom: 0.5rem;">
-                                ${couponInfo.abastible['5'] || 0}
-                            </div>
-                            <div style="color: #c2410c; font-weight: 600; font-size: 0.9rem;">
-                                5 KG
-                            </div>
-                        </div>
-                        
-                        <div style="text-align: center; padding: 1.5rem; background: rgba(249, 115, 22, 0.1); border-radius: 1rem;">
-                            <div style="font-size: 1.8rem; font-weight: 700; color: #f97316; margin-bottom: 0.5rem;">
-                                ${couponInfo.abastible['11'] || 0}
-                            </div>
-                            <div style="color: #c2410c; font-weight: 600; font-size: 0.9rem;">
-                                11 KG
-                            </div>
-                        </div>
-                        
-                        <div style="text-align: center; padding: 1.5rem; background: rgba(249, 115, 22, 0.1); border-radius: 1rem;">
-                            <div style="font-size: 1.8rem; font-weight: 700; color: #f97316; margin-bottom: 0.5rem;">
-                                ${couponInfo.abastible['15'] || 0}
-                            </div>
-                            <div style="color: #c2410c; font-weight: 600; font-size: 0.9rem;">
-                                15 KG
-                            </div>
-                        </div>
-                        
-                        <div style="text-align: center; padding: 1.5rem; background: rgba(249, 115, 22, 0.1); border-radius: 1rem;">
-                            <div style="font-size: 1.8rem; font-weight: 700; color: #f97316; margin-bottom: 0.5rem;">
-                                ${couponInfo.abastible['45'] || 0}
-                            </div>
-                            <div style="color: #c2410c; font-weight: 600; font-size: 0.9rem;">
-                                45 KG
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    if (!couponInfo || !couponInfo.encontrado) {
+        resultsContent.innerHTML = `
+            <div style="text-align: center; padding: 3rem; color: var(--health-error);">
+                <h3 style="margin-bottom: 1rem; font-size: 1.5rem;">🔍 RUT no encontrado</h3>
+                <p style="color: var(--gray-600);">El RUT ingresado no se encuentra en la base de datos.</p>
             </div>
         `;
-
-        resultsContent.innerHTML = html;
         resultsSection.style.display = 'block';
         resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
     }
+
+    // Totales usados
+    const lipigasUsados =
+        (couponInfo.lipigas?.['5'] ?? 0) +
+        (couponInfo.lipigas?.['11'] ?? 0) +
+        (couponInfo.lipigas?.['15'] ?? 0) +
+        (couponInfo.lipigas?.['45'] ?? 0);
+
+    const abastibleUsados =
+        (couponInfo.abastible?.['5'] ?? 0) +
+        (couponInfo.abastible?.['11'] ?? 0) +
+        (couponInfo.abastible?.['15'] ?? 0) +
+        (couponInfo.abastible?.['45'] ?? 0);
+
+    const html = `
+    <!-- Información del Usuario -->
+    <div style="background: linear-gradient(135deg, var(--gray-25), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-md); margin-bottom: 2rem;">
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--health-primary); margin-bottom: 1rem; font-family: var(--font-display); text-align: center;">
+            ${couponInfo.nombres} ${couponInfo.apellidos}
+        </div>
+        <div style="text-align: center; color: var(--gray-600); font-size: 1rem;">
+            <strong>RUT:</strong> ${couponInfo.rut}
+            ${couponInfo.establecimiento ? `<br><strong>Centro:</strong> ${couponInfo.establecimiento}` : ''}
+        </div>
+    </div>
+
+    <!-- Resumen General -->
+    <div style="background: linear-gradient(135deg, var(--white), var(--gray-25)); padding: 2.5rem; border-radius: 1.5rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-lg); margin-bottom: 2rem;">
+        <h3 style="text-align: center; margin-bottom: 2rem; color: var(--gray-800); font-size: 1.4rem; font-weight: 700;">📊 Resumen General</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+            <div style="text-align: center; padding: 2rem; background: rgba(239, 68, 68, 0.05); border-radius: 1.5rem; border: 2px solid rgba(239, 68, 68, 0.1);">
+                <div style="font-size: 3rem; font-weight: 800; color: var(--health-error); margin-bottom: 0.5rem; font-family: var(--font-display);">
+                    ${couponInfo.usadoEnElMes ?? 0}
+                </div>
+                <div style="color: var(--health-error); font-weight: 600; font-size: 1.2rem;">USADO EN EL MES</div>
+            </div>
+            <div style="text-align: center; padding: 2rem; background: rgba(34, 197, 94, 0.05); border-radius: 1.5rem; border: 2px solid rgba(34, 197, 94, 0.1);">
+                <div style="font-size: 3rem; font-weight: 800; color: var(--health-success); margin-bottom: 0.5rem; font-family: var(--font-display);">
+                    ${couponInfo.disponible ?? 4}
+                </div>
+                <div style="color: var(--health-success); font-weight: 600; font-size: 1.2rem;">DISPONIBLE</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalle por Empresa -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+
+        <!-- LIPIGAS -->
+        <div style="background: linear-gradient(135deg, rgba(14,165,233,0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(14,165,233,0.2); box-shadow: var(--shadow-lg);">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h3 style="color: #0ea5e9; font-size: 1.5rem; font-weight: 800;">⛽ LIPIGAS</h3>
+                <div style="font-size: 2rem; font-weight: 700; color: #0ea5e9;">Total Usado: ${lipigasUsados}</div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                ${['5','11','15','45'].map(kg => `
+                    <div style="text-align: center; padding: 1.5rem; background: rgba(14,165,233,0.1); border-radius: 1rem;">
+                        <div style="font-size: 1.8rem; font-weight: 700; color: #0ea5e9; margin-bottom: 0.5rem;">
+                            ${couponInfo.lipigas?.[kg] ?? 0}
+                        </div>
+                        <div style="color: #0369a1; font-weight: 600; font-size: 0.9rem;">
+                            ${kg} KG
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+
+        <!-- ABASTIBLE -->
+        <div style="background: linear-gradient(135deg, rgba(249,115,22,0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(249,115,22,0.2); box-shadow: var(--shadow-lg);">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h3 style="color: #f97316; font-size: 1.5rem; font-weight: 800;">🔥 ABASTIBLE</h3>
+                <div style="font-size: 2rem; font-weight: 700; color: #f97316;">Total Usado: ${abastibleUsados}</div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                ${['5','11','15','45'].map(kg => `
+                    <div style="text-align: center; padding: 1.5rem; background: rgba(249,115,22,0.1); border-radius: 1rem;">
+                        <div style="font-size: 1.8rem; font-weight: 700; color: #f97316; margin-bottom: 0.5rem;">
+                            ${couponInfo.abastible?.[kg] ?? 0}
+                        </div>
+                        <div style="color: #c2410c; font-weight: 600; font-size: 0.9rem;">
+                            ${kg} KG
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    </div>
+    `;
+
+    resultsContent.innerHTML = html;
+    resultsSection.style.display = 'block';
+    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 
     // ========================================
     // PANEL ADMINISTRATIVO - ACTUALIZADO PARA GOOGLE SHEETS
