@@ -301,7 +301,7 @@ class BienestarAPSSystem {
                             '45': this.parseNumber(row[16]) || 0  // Columna Q
                         },
                         usadoEnElMes: this.parseNumber(row[31]) || 0, // Columna AF
-                        disponible: this.parseNumber(row[32]) || 4    // Columna AG
+                        disponible: Math.max(0, 4 - (this.parseNumber(row[31]) || 0)) // Calculado: 4 - USADO
                     };
                 }
             }
@@ -350,7 +350,7 @@ class BienestarAPSSystem {
                 '45': this.parseNumber(row[12]) || 0
             },
             usadoEnElMes: this.parseNumber(row[13]) || 0,
-            disponible: this.parseNumber(row[14]) || 4
+            disponible: Math.max(0, 4 - (this.parseNumber(row[13]) || 0)) // Calculado: 4 - USADO
         };
     }
 
@@ -374,7 +374,7 @@ class BienestarAPSSystem {
                     lipigas: { '5': 0, '11': 0, '15': 0, '45': 0 },
                     abastible: { '5': 0, '11': 0, '15': 0, '45': 0 },
                     usadoEnElMes: 0,
-                    disponible: 4
+                    disponible: 4 // Usuario nuevo, 4 disponibles
                 };
             }
         }
