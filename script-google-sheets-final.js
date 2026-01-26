@@ -523,9 +523,6 @@ displaySimplifiedResults(couponInfo) {
         });
         document.getElementById('rutInput').addEventListener('input', (e) => this.formatRUT(e));
 
-        // Panel administrativo
-        document.getElementById('adminBtn').addEventListener('click', () => this.openAdminModal());
-
         // Cerrar modales
         document.querySelector('.close-btn').addEventListener('click', () => this.closeAdminModal());
         document.getElementById('adminLoginModal').addEventListener('click', (e) => {
