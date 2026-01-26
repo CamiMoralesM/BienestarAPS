@@ -268,6 +268,9 @@ class BienestarAPSSystem {
         const rutInput = document.getElementById('rutInput');
         const rut = rutInput.value.trim();
 
+        console.log('\n🔍 ===== DIAGNÓSTICO COMPLETO DE BÚSQUEDA =====');
+        console.log('📝 RUT ingresado:', rut);
+
         if (!rut) {
             this.showAlert('📝 Por favor ingrese un RUT', 'error');
             rutInput.focus();
@@ -293,8 +296,50 @@ class BienestarAPSSystem {
                 }
             }
 
+            // DIAGNÓSTICO COMPLETO DEL EXCEL
+            console.log('\n📊 ===== ANÁLISIS COMPLETO DEL EXCEL =====');
+            console.log('📋 Hojas disponibles:', this.currentWorkbook.SheetNames);
+            
+            // Analizar cada hoja
+            this.currentWorkbook.SheetNames.forEach((sheetName, index) => {
+                console.log(`\n📄 HOJA ${index + 1}: "${sheetName}"`);
+                const sheet = this.currentWorkbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
+                
+                console.log(`   📏 Filas totales: ${jsonData.length}`);
+                console.log(`   📋 Primeras 5 filas:`, jsonData.slice(0, 5));
+                
+                // Buscar RUTs en diferentes columnas
+                let rutCount = 0;
+                const rutColumns = [];
+                
+                for (let i = 0; i < Math.min(jsonData.length, 20); i++) {
+                    const row = jsonData[i];
+                    if (row) {
+                        // Buscar en todas las columnas
+                        for (let col = 0; col < row.length; col++) {
+                            if (row[col] && this.looksLikeRUT(row[col])) {
+                                rutCount++;
+                                if (!rutColumns.includes(col)) {
+                                    rutColumns.push(col);
+                                }
+                                console.log(`   🔍 RUT encontrado fila ${i+1}, columna ${String.fromCharCode(65+col)}: "${row[col]}"`);
+                            }
+                        }
+                    }
+                }
+                
+                console.log(`   📈 Total RUTs encontrados: ${rutCount}`);
+                console.log(`   📍 Columnas con RUTs: ${rutColumns.map(c => String.fromCharCode(65+c)).join(', ')}`);
+            });
+
             const normalizedRUT = this.normalizeRUT(rut);
+            console.log('\n🔧 RUT normalizado para búsqueda:', normalizedRUT);
+            
             const couponInfo = this.findCouponInfoInExcel(this.currentWorkbook, normalizedRUT);
+            
+            console.log('\n📋 Resultado final de búsqueda:', couponInfo);
+            console.log('===== FIN DIAGNÓSTICO =====\n');
             
             this.displaySimplifiedResults(couponInfo);
             this.showLoading(false);
@@ -304,6 +349,14 @@ class BienestarAPSSystem {
             this.showAlert('❌ Error al procesar la búsqueda', 'error');
             this.showLoading(false);
         }
+    }
+
+    // Función helper para detectar si algo parece un RUT
+    looksLikeRUT(value) {
+        if (!value) return false;
+        const str = String(value).trim();
+        // Patrón básico: 7-8 dígitos, seguido de - y dígito o K
+        return /^\d{7,8}-[\dkK]$/.test(str);
     }
 
     shouldRefreshData() {
