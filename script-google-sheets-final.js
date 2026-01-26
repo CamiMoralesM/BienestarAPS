@@ -8,10 +8,10 @@ class BienestarAPSSystem {
         this.currentUser = null;
         this.currentWorkbook = null;
         this.selectedFile = null;
-        // TU GOOGLE SHEETS - URL CORRECTA QUE FUNCIONABA
-        this.EXCEL_URL = 'https://docs.google.com/spreadsheets/d/1Dqo2NUU0ufdHZ74SboNxihDcuep5UmHR/export?format=xlsx';
+        // TU GOOGLE SHEETS - URL CORRECTA QUE FUNCIONABA ANTES
+        this.EXCEL_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTlgHF7u5CO6n4jaVol3Ov9a1jwgwyGg_ev3Gu3M1Q0fakiRhDDukjByTUjleeIPQ/pub?output=xlsx';
         // URL de backup para móviles  
-        this.BACKUP_URL = 'https://docs.google.com/spreadsheets/d/1Dqo2NUU0ufdHZ74SboNxihDcuep5UmHR/export?format=csv';
+        this.BACKUP_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTlgHF7u5CO6n4jaVol3Gu3M1Q0fakiRhDDukjByTUjleeIPQ/pub?output=csv';
         this.init();
     }
 
@@ -47,45 +47,60 @@ class BienestarAPSSystem {
     async loadExcelFromGoogleSheets() {
         try {
             console.log('📊 Descargando datos desde Google Sheets...');
+            console.log('🔗 URL a usar:', this.EXCEL_URL);
             
-            // Detectar si es móvil
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            console.log('📱 Dispositivo móvil:', isMobile);
-            
-            // Intentar caché reciente primero (3 minutos en móvil, 5 en desktop)
-            const cacheMinutes = isMobile ? 3 : 5;
+            // Intentar caché reciente primero (5 minutos)
             const cachedData = localStorage.getItem('gasSystemData');
             if (cachedData) {
                 const fileData = JSON.parse(cachedData);
-                if (fileData.workbook && this.isRecentCache(fileData.downloadDate, cacheMinutes)) {
+                if (fileData.workbook && this.isRecentCache(fileData.downloadDate, 5)) {
                     this.currentWorkbook = fileData.workbook;
-                    console.log(`⚡ Usando caché reciente (menos de ${cacheMinutes} min)`);
+                    console.log('⚡ Usando caché reciente (menos de 5 min)');
                     return true;
                 }
             }
 
-            // Configurar timeout más corto para móviles
-            const timeoutMs = isMobile ? 15000 : 30000; // 15s móvil, 30s desktop
-            
-            // Intentar descarga principal
-            const success = await this.downloadWithTimeout(this.EXCEL_URL, timeoutMs, 'XLSX');
-            if (success) return true;
-            
-            // Si falla, intentar URL de backup (CSV) solo en móviles
-            if (isMobile && this.BACKUP_URL) {
-                console.log('📱 Intentando descarga CSV para móviles...');
-                const csvSuccess = await this.downloadWithTimeout(this.BACKUP_URL, timeoutMs, 'CSV');
-                if (csvSuccess) return true;
+            // Descargar desde Google Sheets - MÉTODO SIMPLE QUE FUNCIONABA
+            console.log('🌐 Iniciando descarga desde Google Sheets...');
+            const response = await fetch(this.EXCEL_URL, {
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-cache'
+            });
+
+            console.log('📡 Respuesta:', response.status, response.statusText);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
+
+            console.log('📊 Procesando archivo Excel...');
+            const arrayBuffer = await response.arrayBuffer();
+            console.log('📏 Tamaño archivo:', arrayBuffer.byteLength, 'bytes');
             
-            // Usar caché antiguo como último recurso
-            console.log('📋 Usando datos guardados localmente como fallback');
-            const hasOldCache = this.loadFromOldCache();
-            this.showDataStatus(false, isMobile ? 'Problema de conectividad móvil' : 'Error de conexión');
-            return hasOldCache;
+            const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+            console.log('📋 Hojas encontradas:', workbook.SheetNames);
+            
+            this.currentWorkbook = workbook;
+            
+            // Guardar en caché con timestamp
+            const fileData = {
+                name: 'cupones-gas-data.xlsx',
+                downloadDate: new Date().toISOString(),
+                source: 'google-sheets-pub',
+                url: this.EXCEL_URL,
+                workbook: workbook
+            };
+            localStorage.setItem('gasSystemData', JSON.stringify(fileData));
+            
+            console.log('✅ Datos actualizados desde Google Sheets');
+            this.showDataStatus(true);
+            return true;
             
         } catch (error) {
-            console.error('❌ Error general:', error.message);
+            console.error('❌ Error descargando desde Google Sheets:', error.message);
+            
+            // Usar caché antiguo como fallback
             const hasOldCache = this.loadFromOldCache();
             this.showDataStatus(false, error.message);
             return hasOldCache;
