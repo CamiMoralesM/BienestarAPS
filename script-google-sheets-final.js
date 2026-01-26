@@ -246,11 +246,73 @@ class BienestarAPSSystem {
     }
 
     findCouponInfoInExcel(workbook, rut) {
-        const sheet = workbook.Sheets['CUPONES DISPONIBLES'];
-        if (!sheet) {
-            return this.findUserInBaseDatos(workbook, rut);
+        // PRIMERO: Buscar en hoja GENERAL (datos reales)
+        const generalSheet = workbook.Sheets['GENERAL'];
+        if (generalSheet) {
+            const result = this.findInGeneralSheet(generalSheet, rut);
+            if (result) {
+                return result;
+            }
         }
 
+        // SEGUNDO: Si no encuentra en GENERAL, buscar en CUPONES DISPONIBLES
+        const cuponesSheet = workbook.Sheets['CUPONES DISPONIBLES'];
+        if (cuponesSheet) {
+            const result = this.findInCuponesDisponibles(cuponesSheet, rut);
+            if (result) {
+                return result;
+            }
+        }
+
+        // TERCERO: Si no encuentra en ninguna, buscar en BASE DE DATOS
+        return this.findUserInBaseDatos(workbook, rut);
+    }
+
+    findInGeneralSheet(sheet, rut) {
+        console.log('🔍 Buscando en hoja GENERAL...');
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
+        
+        // Buscar en toda la hoja desde fila 6 en adelante (índice 5)
+        for (let i = 5; i < jsonData.length; i++) {
+            const row = jsonData[i];
+            if (row && row[4]) { // Columna E (índice 4) - RUT
+                const rutEnFila = String(row[4]).trim();
+                const rutNormalizado = this.normalizeRUT(rutEnFila);
+                
+                if (rutNormalizado === rut) {
+                    console.log(`✅ RUT encontrado en GENERAL fila ${i + 1}`);
+                    
+                    return {
+                        encontrado: true,
+                        rut: rutNormalizado,
+                        nombres: row[5] || '', // Columna F
+                        apellidos: row[6] || '', // Columna G
+                        establecimiento: row[7] || '', // Columna H
+                        lipigas: {
+                            '5': this.parseNumber(row[9]) || 0,  // Columna J
+                            '11': this.parseNumber(row[10]) || 0, // Columna K
+                            '15': this.parseNumber(row[11]) || 0, // Columna L
+                            '45': this.parseNumber(row[12]) || 0  // Columna M
+                        },
+                        abastible: {
+                            '5': this.parseNumber(row[13]) || 0,  // Columna N
+                            '11': this.parseNumber(row[14]) || 0, // Columna O
+                            '15': this.parseNumber(row[15]) || 0, // Columna P
+                            '45': this.parseNumber(row[16]) || 0  // Columna Q
+                        },
+                        usadoEnElMes: this.parseNumber(row[31]) || 0, // Columna AF
+                        disponible: this.parseNumber(row[32]) || 4    // Columna AG
+                    };
+                }
+            }
+        }
+        
+        console.log('❌ RUT no encontrado en hoja GENERAL');
+        return null;
+    }
+
+    findInCuponesDisponibles(sheet, rut) {
+        console.log('🔍 Buscando en hoja CUPONES DISPONIBLES...');
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
         
         let foundRow = null;
@@ -263,10 +325,12 @@ class BienestarAPSSystem {
         }
 
         if (foundRow === null) {
-            return this.findUserInBaseDatos(workbook, rut);
+            console.log('❌ RUT no encontrado en CUPONES DISPONIBLES');
+            return null;
         }
 
         const row = jsonData[foundRow];
+        console.log(`✅ RUT encontrado en CUPONES DISPONIBLES fila ${foundRow + 1}`);
         
         return {
             encontrado: true,
