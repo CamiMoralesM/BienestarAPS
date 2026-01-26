@@ -272,7 +272,20 @@ class BienestarAPSSystem {
         console.log('🔍 Buscando en hoja GENERAL...');
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
         
-        // Buscar en toda la hoja desde fila 6 en adelante (índice 5)
+        // Variables para sumar múltiples transacciones del mismo RUT
+        let encontrado = false;
+        let datosUsuario = {
+            rut: rut,
+            nombres: '',
+            apellidos: '',
+            establecimiento: '',
+            lipigas: { '5': 0, '11': 0, '15': 0, '45': 0 },
+            abastible: { '5': 0, '11': 0, '15': 0, '45': 0 },
+            usadoEnElMes: 0,
+            disponible: 4
+        };
+        
+        // Buscar TODAS las filas que coincidan con el RUT
         for (let i = 5; i < jsonData.length; i++) {
             const row = jsonData[i];
             if (row && row[4]) { // Columna E (índice 4) - RUT
@@ -281,30 +294,49 @@ class BienestarAPSSystem {
                 
                 if (rutNormalizado === rut) {
                     console.log(`✅ RUT encontrado en GENERAL fila ${i + 1}`);
+                    encontrado = true;
                     
-                    return {
-                        encontrado: true,
-                        rut: rutNormalizado,
-                        nombres: row[5] || '', // Columna F
-                        apellidos: row[6] || '', // Columna G
-                        establecimiento: row[7] || '', // Columna H
-                        lipigas: {
-                            '5': this.parseNumber(row[9]) || 0,  // Columna J
-                            '11': this.parseNumber(row[10]) || 0, // Columna K
-                            '15': this.parseNumber(row[11]) || 0, // Columna L
-                            '45': this.parseNumber(row[12]) || 0  // Columna M
-                        },
-                        abastible: {
-                            '5': this.parseNumber(row[13]) || 0,  // Columna N
-                            '11': this.parseNumber(row[14]) || 0, // Columna O
-                            '15': this.parseNumber(row[15]) || 0, // Columna P
-                            '45': this.parseNumber(row[16]) || 0  // Columna Q
-                        },
-                        usadoEnElMes: this.parseNumber(row[31]) || 0, // Columna AF
-                        disponible: Math.max(0, 4 - (this.parseNumber(row[31]) || 0)) // Calculado: 4 - USADO
-                    };
+                    // PRIMERA VEZ: Guardar datos básicos del usuario
+                    if (!datosUsuario.nombres) {
+                        datosUsuario.nombres = row[5] || '';     // Columna F
+                        datosUsuario.apellidos = row[6] || '';   // Columna G
+                        datosUsuario.establecimiento = row[7] || ''; // Columna H
+                        datosUsuario.usadoEnElMes = this.parseNumber(row[31]) || 0; // Columna AF
+                        datosUsuario.disponible = this.parseNumber(row[32]) || 4;   // Columna AG ← DIRECTO
+                    }
+                    
+                    // SIEMPRE: Sumar cupones de esta transacción
+                    datosUsuario.lipigas['5'] += this.parseNumber(row[9]) || 0;   // Columna J
+                    datosUsuario.lipigas['11'] += this.parseNumber(row[10]) || 0; // Columna K
+                    datosUsuario.lipigas['15'] += this.parseNumber(row[11]) || 0; // Columna L
+                    datosUsuario.lipigas['45'] += this.parseNumber(row[12]) || 0; // Columna M
+                    
+                    datosUsuario.abastible['5'] += this.parseNumber(row[13]) || 0;  // Columna N
+                    datosUsuario.abastible['11'] += this.parseNumber(row[14]) || 0; // Columna O
+                    datosUsuario.abastible['15'] += this.parseNumber(row[15]) || 0; // Columna P
+                    datosUsuario.abastible['45'] += this.parseNumber(row[16]) || 0; // Columna Q
                 }
             }
+        }
+        
+        if (encontrado) {
+            console.log(`✅ Total transacciones sumadas para RUT ${rut}:`);
+            console.log(`📊 USADO EN EL MES: ${datosUsuario.usadoEnElMes}`);
+            console.log(`📊 DISPONIBLE: ${datosUsuario.disponible}`);
+            console.log(`⛽ LIPIGAS Total:`, datosUsuario.lipigas);
+            console.log(`🔥 ABASTIBLE Total:`, datosUsuario.abastible);
+            
+            return {
+                encontrado: true,
+                rut: datosUsuario.rut,
+                nombres: datosUsuario.nombres,
+                apellidos: datosUsuario.apellidos,
+                establecimiento: datosUsuario.establecimiento,
+                lipigas: datosUsuario.lipigas,
+                abastible: datosUsuario.abastible,
+                usadoEnElMes: datosUsuario.usadoEnElMes,
+                disponible: datosUsuario.disponible
+            };
         }
         
         console.log('❌ RUT no encontrado en hoja GENERAL');
