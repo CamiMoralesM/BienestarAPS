@@ -420,7 +420,7 @@ findInGeneralSheet(sheet, rut) {
         return null;
     }
 
-displaySimplifiedResults(couponInfo) {
+function displaySimplifiedResults(couponInfo) {
     const resultsSection = document.getElementById('resultsSection');
     const resultsContent = document.getElementById('resultsContent');
 
@@ -450,69 +450,71 @@ displaySimplifiedResults(couponInfo) {
         (couponInfo.abastible?.['45'] ?? 0);
 
     const html = `
-        <!-- Información del Usuario -->
-        <div style="background: linear-gradient(135deg, var(--gray-25), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-md); margin-bottom: 2rem;">
-            <div style="font-size: 1.5rem; font-weight: 700; color: var(--health-primary); margin-bottom: 1rem; text-align: center;">
-                ${couponInfo.nombres} ${couponInfo.apellidos}
-            </div>
-            <div style="text-align: center; color: var(--gray-600); font-size: 1rem;">
-                <strong>RUT:</strong> ${couponInfo.rut}
-                ${couponInfo.establecimiento ? `<br><strong>Centro:</strong> ${couponInfo.establecimiento}` : ''}
-            </div>
+    <!-- Información del Usuario -->
+    <div style="background: linear-gradient(135deg, var(--gray-25), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-md); margin-bottom: 2rem;">
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--health-primary); margin-bottom: 1rem; font-family: var(--font-display); text-align: center;">
+            ${couponInfo.nombres} ${couponInfo.apellidos}
         </div>
-
-        <!-- Resumen General -->
-        <div style="background: linear-gradient(135deg, var(--white), var(--gray-25)); padding: 2.5rem; border-radius: 1.5rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-lg); margin-bottom: 2rem;">
-            <h3 style="text-align: center; margin-bottom: 2rem; color: var(--gray-800); font-size: 1.4rem; font-weight: 700;">
-                📊 Resumen General
-            </h3>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
-                
-                <!-- USADO -->
-                <div style="text-align: center; padding: 2rem; background: rgba(239, 68, 68, 0.05); border-radius: 1.5rem; border: 2px solid rgba(239, 68, 68, 0.1);">
-                    <div style="font-size: 3rem; font-weight: 800; color: var(--health-error); margin-bottom: 0.5rem;">
-                        ${couponInfo.usadoEnElMes ?? 0}
-                    </div>
-                    <div style="color: var(--health-error); font-weight: 600; font-size: 1.2rem;">
-                        USADO EN EL MES
-                    </div>
-                </div>
-
-                <!-- DISPONIBLE -->
-                <div style="text-align: center; padding: 2rem; background: rgba(34, 197, 94, 0.05); border-radius: 1.5rem; border: 2px solid rgba(34, 197, 94, 0.1);">
-                    <div style="font-size: 3rem; font-weight: 800; color: var(--health-success); margin-bottom: 0.5rem;">
-                        ${couponInfo.disponible ?? 0}
-                    </div>
-                    <div style="color: var(--health-success); font-weight: 600; font-size: 1.2rem;">
-                        DISPONIBLE
-                    </div>
-                </div>
-
-            </div>
+        <div style="text-align: center; color: var(--gray-600); font-size: 1rem;">
+            <strong>RUT:</strong> ${couponInfo.rut}
+            ${couponInfo.establecimiento ? `<br><strong>Centro:</strong> ${couponInfo.establecimiento}` : ''}
         </div>
+    </div>
 
-        <!-- Detalle por Empresa -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
+    <!-- Resumen General -->
+    <div style="background: linear-gradient(135deg, var(--white), var(--gray-25)); padding: 2.5rem; border-radius: 1.5rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-lg); margin-bottom: 2rem;">
+        <h3 style="text-align: center; margin-bottom: 2rem; color: var(--gray-800); font-size: 1.4rem; font-weight: 700;">📊 Resumen General</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+            <div style="text-align: center; padding: 2rem; background: rgba(239, 68, 68, 0.05); border-radius: 1.5rem; border: 2px solid rgba(239, 68, 68, 0.1);">
+                <div style="font-size: 3rem; font-weight: 800; color: var(--health-error); margin-bottom: 0.5rem; font-family: var(--font-display);">
+                    ${couponInfo.usadoEnElMes ?? 0}
+                </div>
+                <div style="color: var(--health-error); font-weight: 600; font-size: 1.2rem;">
+                    USADO EN EL MES
+                </div>
+            </div>
             
-            <!-- LIPIGAS -->
-            <div style="background: linear-gradient(135deg, rgba(14,165,233,0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(14,165,233,0.2);">
-                <h3 style="text-align:center; color:#0ea5e9;">⛽ LIPIGAS</h3>
-                <p style="text-align:center; font-weight:700;">Total Usado: ${lipigasUsados}</p>
-            </div>
-
-            <!-- ABASTIBLE -->
-            <div style="background: linear-gradient(135deg, rgba(249,115,22,0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(249,115,22,0.2);">
-                <h3 style="text-align:center; color:#f97316;">🔥 ABASTIBLE</h3>
-                <p style="text-align:center; font-weight:700;">Total Usado: ${abastibleUsados}</p>
+            <div style="text-align: center; padding: 2rem; background: rgba(34, 197, 94, 0.05); border-radius: 1.5rem; border: 2px solid rgba(34, 197, 94, 0.1);">
+                <div style="font-size: 3rem; font-weight: 800; color: var(--health-success); margin-bottom: 0.5rem; font-family: var(--font-display);">
+                    ${couponInfo.disponible ?? 4}
+                </div>
+                <div style="color: var(--health-success); font-weight: 600; font-size: 1.2rem;">
+                    DISPONIBLE
+                </div>
             </div>
         </div>
+    </div>
+
+    <!-- Detalle por Empresa -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+        
+        <!-- LIPIGAS -->
+        <div style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(14, 165, 233, 0.2); box-shadow: var(--shadow-lg);">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h3 style="color: #0ea5e9; font-size: 1.5rem; font-weight: 800;">⛽ LIPIGAS</h3>
+                <div style="font-size: 2rem; font-weight: 700; color: #0ea5e9;">
+                    Total Usado: ${lipigasUsados}
+                </div>
+            </div>
+        </div>
+
+        <!-- ABASTIBLE -->
+        <div style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(249, 115, 22, 0.2); box-shadow: var(--shadow-lg);">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h3 style="color: #f97316; font-size: 1.5rem; font-weight: 800;">🔥 ABASTIBLE</h3>
+                <div style="font-size: 2rem; font-weight: 700; color: #f97316;">
+                    Total Usado: ${abastibleUsados}
+                </div>
+            </div>
+        </div>
+    </div>
     `;
 
     resultsContent.innerHTML = html;
     resultsSection.style.display = 'block';
     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
     // ========================================
     // PANEL ADMINISTRATIVO - ACTUALIZADO PARA GOOGLE SHEETS
     // ========================================
