@@ -8,9 +8,10 @@ class BienestarAPSSystem {
         this.currentUser = null;
         this.currentWorkbook = null;
         this.selectedFile = null;
-        // TU GOOGLE SHEETS - URL COMPATIBLE CON MÓVILES
-        this.EXCEL_URL = 'https://docs.google.com/spreadsheets/d/1Dqo2NUU0ufdHZ74SboNxihDcuep5UmHR/export?format=xlsx&gid=0';
-        this.BACKUP_URL = 'https://docs.google.com/spreadsheets/d/1Dqo2NUU0ufdHZ74SboNxihDcuep5UmHR/export?format=csv&gid=0';
+        // TU GOOGLE SHEETS - URL CORRECTA QUE FUNCIONABA
+        this.EXCEL_URL = 'https://docs.google.com/spreadsheets/d/1Dqo2NUU0ufdHZ74SboNxihDcuep5UmHR/export?format=xlsx';
+        // URL de backup para móviles  
+        this.BACKUP_URL = 'https://docs.google.com/spreadsheets/d/1Dqo2NUU0ufdHZ74SboNxihDcuep5UmHR/export?format=csv';
         this.init();
     }
 
@@ -93,39 +94,78 @@ class BienestarAPSSystem {
 
     async downloadWithTimeout(url, timeout, type) {
         try {
-            console.log(`📡 Intentando descargar ${type} desde:`, url);
+            console.log(`📡 DIAGNÓSTICO: Intentando descargar ${type}`);
+            console.log(`🔗 URL completa: ${url}`);
+            console.log(`⏱️ Timeout configurado: ${timeout}ms`);
             
             // Crear promise con timeout
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            const timeoutId = setTimeout(() => {
+                console.log('⏱️ TIMEOUT: Cancelando descarga por tiempo excedido');
+                controller.abort();
+            }, timeout);
             
+            console.log('📡 Iniciando fetch...');
             const response = await fetch(url, {
                 method: 'GET',
                 mode: 'cors',
                 cache: 'no-cache',
                 signal: controller.signal,
                 headers: {
-                    'Accept': type === 'XLSX' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'text/csv'
+                    'Accept': type === 'XLSX' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'text/csv',
+                    'User-Agent': navigator.userAgent
                 }
             });
             
             clearTimeout(timeoutId);
             
+            console.log(`📊 Respuesta recibida:`);
+            console.log(`   Status: ${response.status} ${response.statusText}`);
+            console.log(`   Content-Type: ${response.headers.get('content-type')}`);
+            console.log(`   Content-Length: ${response.headers.get('content-length')}`);
+            
+            // Diagnóstico específico de errores
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                let errorDetails = `HTTP ${response.status}: ${response.statusText}`;
+                
+                switch (response.status) {
+                    case 400:
+                        errorDetails += '\n❌ URL mal formada o parámetros incorrectos';
+                        console.log('🔍 Verificar que el Google Sheets sea público');
+                        console.log('🔍 Verificar que el ID del documento sea correcto');
+                        break;
+                    case 403:
+                        errorDetails += '\n❌ Google Sheets no es público o sin permisos';
+                        console.log('🔍 Hacer el Google Sheets público: Compartir → Cualquier persona con el enlace');
+                        break;
+                    case 404:
+                        errorDetails += '\n❌ Google Sheets no encontrado';
+                        console.log('🔍 Verificar que el ID del documento sea correcto');
+                        break;
+                    default:
+                        errorDetails += '\n❌ Error del servidor de Google';
+                }
+                
+                throw new Error(errorDetails);
             }
 
+            console.log('✅ Respuesta OK, procesando datos...');
             let workbook;
+            
             if (type === 'CSV') {
-                // Procesar CSV para móviles
+                console.log('📝 Procesando como CSV...');
                 const csvText = await response.text();
+                console.log(`📏 CSV recibido: ${csvText.length} caracteres`);
+                console.log(`📄 Primeras líneas: ${csvText.substring(0, 200)}...`);
                 workbook = this.csvToWorkbook(csvText);
             } else {
-                // Procesar XLSX normal
+                console.log('📊 Procesando como XLSX...');
                 const arrayBuffer = await response.arrayBuffer();
+                console.log(`📏 XLSX recibido: ${arrayBuffer.byteLength} bytes`);
                 workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
             }
             
+            console.log('📋 Hojas encontradas:', workbook.SheetNames);
             this.currentWorkbook = workbook;
             
             // Guardar en caché con timestamp
@@ -140,20 +180,26 @@ class BienestarAPSSystem {
             
             try {
                 localStorage.setItem('gasSystemData', JSON.stringify(fileData));
+                console.log('💾 Datos guardados en caché local');
             } catch (storageError) {
-                console.warn('⚠️ No se pudo guardar en caché:', storageError);
+                console.warn('⚠️ No se pudo guardar en caché:', storageError.message);
             }
             
-            console.log(`✅ Datos actualizados desde Google Sheets (${type})`);
+            console.log(`✅ Descarga ${type} completada exitosamente`);
             this.showDataStatus(true);
             return true;
             
         } catch (error) {
             if (error.name === 'AbortError') {
-                console.error('⏱️ Timeout descargando:', error.message);
-                throw new Error('Conexión lenta - timeout');
+                console.error('⏱️ TIMEOUT: Conexión demasiado lenta');
+                throw new Error('Conexión muy lenta - intenta de nuevo');
             }
-            console.error(`❌ Error descargando ${type}:`, error.message);
+            
+            console.error(`❌ ERROR DESCARGANDO ${type}:`);
+            console.error(`   Mensaje: ${error.message}`);
+            console.error(`   Tipo: ${error.name}`);
+            console.error(`   Stack: ${error.stack}`);
+            
             throw error;
         }
     }
