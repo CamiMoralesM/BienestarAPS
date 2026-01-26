@@ -15,27 +15,7 @@ class BienestarAPSSystem {
 
     init() {
         this.bindEvents();
-        this.setupFirebase();
-        // Cargar datos inmediatamente
         this.loadExcelFromGoogleSheets();
-    }
-
-    async setupFirebase() {
-        if (window.firebase) {
-            this.auth = window.firebase.auth();
-            this.storage = window.firebase.storage();
-            
-            this.auth.onAuthStateChanged((user) => {
-                this.currentUser = user;
-                if (user) {
-                    this.showAdminPanel();
-                } else {
-                    this.showLoginForm();
-                }
-                // Recargar datos cuando cambie auth
-                this.loadExcelFromGoogleSheets();
-            });
-        }
     }
 
     // ========================================
