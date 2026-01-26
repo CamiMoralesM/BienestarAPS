@@ -523,12 +523,6 @@ displaySimplifiedResults(couponInfo) {
         });
         document.getElementById('rutInput').addEventListener('input', (e) => this.formatRUT(e));
 
-        // Cerrar modales
-        document.querySelector('.close-btn').addEventListener('click', () => this.closeAdminModal());
-        document.getElementById('adminLoginModal').addEventListener('click', (e) => {
-            if (e.target.id === 'adminLoginModal') this.closeAdminModal();
-        });
-
         // Refrescar datos manualmente
         const refreshBtn = document.getElementById('refreshBtn');
         if (refreshBtn) {
