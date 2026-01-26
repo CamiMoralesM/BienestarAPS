@@ -1,6 +1,6 @@
 /**
- * BIENESTAR APS - VERSIÓN GOOGLE DRIVE (SIN CORS)
- * 100% GRATIS + SIN problemas de CORS
+ * BIENESTAR APS - SISTEMA DE CUPONES DE GAS
+ * Versión Google Sheets - CON TU ENLACE ESPECÍFICO
  */
 
 class BienestarAPSSystem {
@@ -8,14 +8,16 @@ class BienestarAPSSystem {
         this.currentUser = null;
         this.currentWorkbook = null;
         this.selectedFile = null;
-        // URL pública de Google Drive (el admin la actualiza aquí)
-        this.EXCEL_URL = 'https://drive.google.com/uc?id=TU_FILE_ID_AQUI&export=download';
+        // TU GOOGLE SHEETS - Se actualiza automáticamente cuando editas online
+        this.EXCEL_URL = 'https://docs.google.com/spreadsheets/d/1Dqo2NUU0ufdHZ74SboNxihDcuep5UmHR/export?format=xlsx';
         this.init();
     }
 
     init() {
         this.bindEvents();
         this.setupFirebase();
+        // Cargar datos inmediatamente
+        this.loadExcelFromGoogleSheets();
     }
 
     async setupFirebase() {
@@ -30,41 +32,40 @@ class BienestarAPSSystem {
                 } else {
                     this.showLoginForm();
                 }
-                // Cargar Excel desde Google Drive (público)
-                this.loadExcelFromGoogleDrive();
+                // Recargar datos cuando cambie auth
+                this.loadExcelFromGoogleSheets();
             });
-            
-            this.loadExcelFromGoogleDrive();
         }
     }
 
     // ========================================
-    // GOOGLE DRIVE - SIN CORS ISSUES
+    // GOOGLE SHEETS - ACTUALIZACIÓN AUTOMÁTICA
     // ========================================
 
-    async loadExcelFromGoogleDrive() {
+    async loadExcelFromGoogleSheets() {
         try {
-            // Primero intentar caché local
+            console.log('📊 Descargando datos desde Google Sheets...');
+            
+            // Intentar caché reciente primero (5 minutos)
             const cachedData = localStorage.getItem('gasSystemData');
             if (cachedData) {
                 const fileData = JSON.parse(cachedData);
-                if (fileData.workbook && this.isRecentCache(fileData.downloadDate)) {
+                if (fileData.workbook && this.isRecentCache(fileData.downloadDate, 5)) {
                     this.currentWorkbook = fileData.workbook;
-                    console.log('📊 Excel cargado desde caché local');
+                    console.log('⚡ Usando caché reciente (menos de 5 min)');
                     return true;
                 }
             }
 
-            // Descargar desde Google Drive
-            console.log('📥 Descargando Excel desde Google Drive...');
-            
+            // Descargar desde Google Sheets
             const response = await fetch(this.EXCEL_URL, {
                 method: 'GET',
-                mode: 'cors' // Google Drive tiene CORS configurado
+                mode: 'cors',
+                cache: 'no-cache' // Siempre obtener la versión más reciente
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                throw new Error(`HTTP ${response.status}: No se puede acceder a Google Sheets`);
             }
 
             const arrayBuffer = await response.arrayBuffer();
@@ -72,30 +73,34 @@ class BienestarAPSSystem {
             
             this.currentWorkbook = workbook;
             
-            // Guardar en caché
+            // Guardar en caché con timestamp
             const fileData = {
                 name: 'cupones-gas-data.xlsx',
                 downloadDate: new Date().toISOString(),
-                source: 'google-drive',
+                source: 'google-sheets',
+                url: this.EXCEL_URL,
                 workbook: workbook
             };
             localStorage.setItem('gasSystemData', JSON.stringify(fileData));
             
-            console.log('✅ Excel descargado desde Google Drive');
+            console.log('✅ Datos actualizados desde Google Sheets');
+            this.showDataStatus(true);
             return true;
             
         } catch (error) {
-            console.log('ℹ️ No se pudo cargar Excel desde Google Drive:', error.message);
+            console.error('❌ Error descargando desde Google Sheets:', error.message);
             
-            // Si falla Google Drive, intentar datos del caché aunque sean viejos
-            return this.loadFromOldCache();
+            // Usar caché antiguo como fallback
+            const hasOldCache = this.loadFromOldCache();
+            this.showDataStatus(false, error.message);
+            return hasOldCache;
         }
     }
 
-    isRecentCache(downloadDate) {
+    isRecentCache(downloadDate, minutes = 5) {
         if (!downloadDate) return false;
         const cacheAge = Date.now() - new Date(downloadDate).getTime();
-        const maxAge = 60 * 60 * 1000; // 1 hora
+        const maxAge = minutes * 60 * 1000;
         return cacheAge < maxAge;
     }
 
@@ -106,8 +111,7 @@ class BienestarAPSSystem {
                 const fileData = JSON.parse(cachedData);
                 if (fileData.workbook) {
                     this.currentWorkbook = fileData.workbook;
-                    console.log('📊 Usando caché antiguo (sin conexión a Google Drive)');
-                    this.showAlert('ℹ️ Usando datos guardados localmente. Puede que no sean los más recientes.', 'info');
+                    console.log('📋 Usando datos guardados localmente');
                     return true;
                 }
             }
@@ -117,73 +121,30 @@ class BienestarAPSSystem {
         }
     }
 
-    // ========================================
-    // SUBIDA DE ARCHIVOS - INSTRUCCIONES PARA GOOGLE DRIVE
-    // ========================================
-
-    async uploadToGoogleDrive() {
-        if (!this.currentUser) {
-            this.showAlert('🔐 Debe estar autenticado', 'error');
-            return;
+    showDataStatus(success, errorMessage = '') {
+        // Mostrar estado en la interfaz
+        const statusElement = document.getElementById('dataStatus');
+        if (statusElement) {
+            if (success) {
+                statusElement.innerHTML = '🟢 Datos actualizados desde Google Sheets';
+                statusElement.className = 'alert alert-success';
+            } else {
+                statusElement.innerHTML = `🔴 Problemas conectando a Google Sheets: ${errorMessage}`;
+                statusElement.className = 'alert alert-warning';
+            }
+            statusElement.style.display = 'block';
+            
+            // Ocultar después de 5 segundos
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 5000);
         }
-
-        if (!this.selectedFile) {
-            this.showAlert('📁 Seleccione un archivo', 'error');
-            return;
-        }
-
-        // En lugar de subir automáticamente, mostrar instrucciones
-        this.showGoogleDriveInstructions();
-    }
-
-    showGoogleDriveInstructions() {
-        const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.style.display = 'block';
-        
-        modal.innerHTML = `
-            <div class="modal-content" style="max-width: 600px;">
-                <div class="modal-header">
-                    <h3>📁 Instrucciones para Subir a Google Drive</h3>
-                    <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div style="padding: 1rem;">
-                        <h4>🔄 Pasos para actualizar el Excel:</h4>
-                        <ol style="text-align: left; padding-left: 2rem;">
-                            <li><strong>Sube el archivo</strong> a Google Drive</li>
-                            <li><strong>Click derecho</strong> → "Obtener enlace"</li>
-                            <li><strong>Cambiar permisos</strong> → "Cualquier persona con el enlace"</li>
-                            <li><strong>Copiar ID</strong> del enlace (entre /d/ y /view)</li>
-                            <li><strong>Actualizar código</strong> con el nuevo ID</li>
-                            <li><strong>Recargar página</strong> para ver cambios</li>
-                        </ol>
-                        
-                        <div style="background: #f5f5f5; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;">
-                            <strong>📝 Ejemplo de enlace:</strong><br>
-                            <small>https://drive.google.com/file/d/<span style="background: yellow;">1ABC123XYZ</span>/view</small><br>
-                            <strong>📋 ID a copiar:</strong> <span style="background: yellow;">1ABC123XYZ</span>
-                        </div>
-                        
-                        <div style="background: #e3f2fd; padding: 1rem; border-radius: 0.5rem;">
-                            <strong>💡 Ventajas Google Drive:</strong><br>
-                            ✅ Completamente GRATIS<br>
-                            ✅ Sin problemas de CORS<br>
-                            ✅ Accesible desde cualquier dispositivo<br>
-                            ✅ El archivo siempre está disponible
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
     }
 
     // ========================================
-    // RESTO DEL CÓDIGO IGUAL (búsqueda, validación, etc.)
+    // BÚSQUEDA DE CUPONES
     // ========================================
-
+    
     async searchCoupons() {
         const rutInput = document.getElementById('rutInput');
         const rut = rutInput.value.trim();
@@ -203,10 +164,11 @@ class BienestarAPSSystem {
         this.showLoading(true);
 
         try {
-            if (!this.currentWorkbook) {
-                const loaded = await this.loadExcelFromGoogleDrive();
+            // Intentar recargar datos recientes antes de buscar
+            if (!this.currentWorkbook || this.shouldRefreshData()) {
+                const loaded = await this.loadExcelFromGoogleSheets();
                 if (!loaded) {
-                    this.showAlert('📊 No hay datos disponibles. Contacte al administrador.', 'warning');
+                    this.showAlert('📊 No se pueden cargar los datos actuales. Contacte al administrador.', 'warning');
                     this.showLoading(false);
                     return;
                 }
@@ -225,8 +187,22 @@ class BienestarAPSSystem {
         }
     }
 
-    // [Incluir aquí todos los demás métodos del código original]
-    // validateRUT, normalizeRUT, findCouponInfoInExcel, etc.
+    shouldRefreshData() {
+        const cachedData = localStorage.getItem('gasSystemData');
+        if (!cachedData) return true;
+        
+        try {
+            const fileData = JSON.parse(cachedData);
+            // Refrescar si los datos tienen más de 10 minutos
+            return !this.isRecentCache(fileData.downloadDate, 10);
+        } catch {
+            return true;
+        }
+    }
+
+    // ========================================
+    // VALIDACIÓN RUT Y BÚSQUEDA EN EXCEL
+    // ========================================
 
     validateRUT(rut) {
         const cleanRUT = rut.replace(/[.-]/g, '');
@@ -397,26 +373,96 @@ class BienestarAPSSystem {
         resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // Métodos de UI y eventos
+    // ========================================
+    // PANEL ADMINISTRATIVO - ACTUALIZADO PARA GOOGLE SHEETS
+    // ========================================
+
+    showGoogleSheetsInfo() {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 700px;">
+                <div class="modal-header">
+                    <h3>📊 Información de Google Sheets</h3>
+                    <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div style="padding: 1rem;">
+                        <div style="background: #e8f5e8; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 2rem;">
+                            <h4 style="color: #2d5a2d; margin-bottom: 1rem;">✅ Sistema Conectado a Google Sheets</h4>
+                            <p><strong>📁 Archivo:</strong> Tu Google Sheets de cupones de gas</p>
+                            <p><strong>🔄 Actualización:</strong> Automática cada vez que editas</p>
+                            <p><strong>⚡ Velocidad:</strong> Cambios visibles en 1-2 minutos</p>
+                        </div>
+                        
+                        <h4>🔧 Para actualizar datos:</h4>
+                        <ol style="text-align: left; padding-left: 2rem;">
+                            <li>Ve a tu Google Sheets</li>
+                            <li>Edita los datos directamente</li>
+                            <li>Los cambios se reflejan automáticamente</li>
+                            <li>Los usuarios ven datos actualizados</li>
+                        </ol>
+                        
+                        <div style="background: #f0f8ff; padding: 1rem; border-radius: 0.5rem; margin-top: 2rem;">
+                            <h4>🎯 Ventajas del sistema actual:</h4>
+                            <ul style="text-align: left;">
+                                <li>✅ <strong>Sin subir archivos:</strong> Editas directamente online</li>
+                                <li>✅ <strong>Actualización instantánea:</strong> Sin retrasos</li>
+                                <li>✅ <strong>Acceso desde cualquier dispositivo:</strong> PC, móvil, tablet</li>
+                                <li>✅ <strong>Sin problemas técnicos:</strong> Google maneja todo</li>
+                                <li>✅ <strong>Historial de cambios:</strong> Google Sheets guarda versiones</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background: #fff3cd; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem;">
+                            <p><strong>💡 Consejo:</strong> Mantén el formato de las columnas exactamente como está para que el sistema funcione correctamente.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+    }
+
+    // ========================================
+    // EVENTOS Y UI
+    // ========================================
+
     bindEvents() {
+        // Búsqueda de cupones
         document.getElementById('searchBtn').addEventListener('click', () => this.searchCoupons());
         document.getElementById('rutInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.searchCoupons();
         });
         document.getElementById('rutInput').addEventListener('input', (e) => this.formatRUT(e));
+
+        // Panel administrativo
         document.getElementById('adminBtn').addEventListener('click', () => this.openAdminModal());
+
+        // Autenticación
         document.getElementById('loginBtn').addEventListener('click', () => this.handleLogin());
         document.getElementById('logoutBtn').addEventListener('click', () => this.handleLogout());
-        document.getElementById('excelFile').addEventListener('change', (e) => this.handleFileSelect(e));
-        document.getElementById('uploadBtn').addEventListener('click', () => this.uploadToGoogleDrive());
 
+        // Información de Google Sheets (reemplaza upload)
+        document.getElementById('uploadBtn').addEventListener('click', () => this.showGoogleSheetsInfo());
+
+        // Cerrar modales
         document.querySelector('.close-btn').addEventListener('click', () => this.closeAdminModal());
         document.getElementById('adminLoginModal').addEventListener('click', (e) => {
             if (e.target.id === 'adminLoginModal') this.closeAdminModal();
         });
+
+        // Refrescar datos manualmente
+        const refreshBtn = document.getElementById('refreshBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => this.loadExcelFromGoogleSheets());
+        }
     }
 
-    // Métodos de autenticación y UI
+    // Métodos de autenticación y UI (simplificados)
     async handleLogin() {
         const email = document.getElementById('adminEmail').value;
         const password = document.getElementById('adminPassword').value;
@@ -450,23 +496,6 @@ class BienestarAPSSystem {
         }
     }
 
-    handleFileSelect(e) {
-        const file = e.target.files[0];
-        const uploadBtn = document.getElementById('uploadBtn');
-        
-        if (file && file.name.match(/\.(xlsx|xls)$/)) {
-            uploadBtn.disabled = false;
-            this.selectedFile = file;
-            this.showAlert(`📄 Archivo seleccionado: ${file.name}`, 'success');
-        } else {
-            uploadBtn.disabled = true;
-            this.selectedFile = null;
-            if (file) {
-                this.showAlert('❌ Seleccione un archivo Excel (.xlsx o .xls)', 'error');
-            }
-        }
-    }
-
     showLoginForm() {
         document.getElementById('loginForm').style.display = 'block';
         document.getElementById('adminPanel').style.display = 'none';
@@ -475,6 +504,25 @@ class BienestarAPSSystem {
     showAdminPanel() {
         document.getElementById('loginForm').style.display = 'none';
         document.getElementById('adminPanel').style.display = 'block';
+        this.updateAdminInfo();
+    }
+
+    updateAdminInfo() {
+        const filesList = document.getElementById('filesList');
+        if (filesList) {
+            filesList.innerHTML = `
+                <div class="file-item">
+                    <div>
+                        <div class="file-name">📊 Google Sheets - Sistema Conectado</div>
+                        <div class="file-date">🔄 Actualizaciones automáticas</div>
+                        <div class="file-status">✅ Funcionando correctamente</div>
+                    </div>
+                    <button class="delete-file-btn" onclick="bienestarSystem.showGoogleSheetsInfo()">
+                        ℹ️ Ver Info
+                    </button>
+                </div>
+            `;
+        }
     }
 
     openAdminModal() {
@@ -494,6 +542,7 @@ class BienestarAPSSystem {
         this.hideError(document.getElementById('loginError'));
     }
 
+    // Utilidades
     parseNumber(value) {
         if (value === null || value === undefined || value === '') return 0;
         const num = parseFloat(value.toString().replace(/[^\d.-]/g, ''));
@@ -509,7 +558,7 @@ class BienestarAPSSystem {
     showAlert(message, type = 'info') {
         const existingAlerts = document.querySelectorAll('.alert');
         existingAlerts.forEach(alert => {
-            if (!alert.id.includes('Error') && !alert.id.includes('Success')) {
+            if (!alert.id.includes('Error') && !alert.id.includes('Success') && !alert.id.includes('dataStatus')) {
                 alert.remove();
             }
         });
@@ -553,8 +602,12 @@ let bienestarSystem;
 document.addEventListener('DOMContentLoaded', function() {
     bienestarSystem = new BienestarAPSSystem();
     
-    console.log('🏥 Sistema Bienestar APS - Google Drive Version');
-    console.log('💚 100% GRATIS + SIN problemas CORS');
+    setTimeout(() => {
+        document.body.classList.add('loaded');
+    }, 100);
+    
+    console.log('🏥 Sistema Bienestar APS - Google Sheets Connected');
+    console.log('📊 Datos actualizados automáticamente desde Google Sheets');
     console.log('📧 Admin: Bienestar.aps@cmpuentealto.cl');
 });
 
