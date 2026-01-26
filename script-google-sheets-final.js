@@ -571,61 +571,6 @@ class BienestarAPSSystem {
                     </div>
                 </div>
             </div>
-
-            <!-- Resumen Total por Categoría -->
-            <div style="background: linear-gradient(135deg, var(--gray-25), rgba(16, 185, 129, 0.02)); padding: 2rem; border-radius: 1.5rem; border: 1px solid rgba(16, 185, 129, 0.2); box-shadow: var(--shadow-lg);">
-                <h3 style="text-align: center; margin-bottom: 2rem; color: var(--health-primary); font-size: 1.4rem; font-weight: 700;">⚖️ Total por Categoría de Peso</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1.5rem;">
-                    
-                    <div style="text-align: center; padding: 1.5rem; background: var(--white); border-radius: 1rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);">
-                        <div style="font-size: 2rem; font-weight: 700; color: var(--health-primary); margin-bottom: 0.5rem;">
-                            ${(couponInfo.lipigas['5'] || 0) + (couponInfo.abastible['5'] || 0)}
-                        </div>
-                        <div style="color: var(--gray-700); font-weight: 600; font-size: 1rem;">
-                            🏺 5 KG TOTAL
-                        </div>
-                        <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.5rem;">
-                            L: ${couponInfo.lipigas['5'] || 0} | A: ${couponInfo.abastible['5'] || 0}
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: center; padding: 1.5rem; background: var(--white); border-radius: 1rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);">
-                        <div style="font-size: 2rem; font-weight: 700; color: var(--health-primary); margin-bottom: 0.5rem;">
-                            ${(couponInfo.lipigas['11'] || 0) + (couponInfo.abastible['11'] || 0)}
-                        </div>
-                        <div style="color: var(--gray-700); font-weight: 600; font-size: 1rem;">
-                            🏺 11 KG TOTAL
-                        </div>
-                        <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.5rem;">
-                            L: ${couponInfo.lipigas['11'] || 0} | A: ${couponInfo.abastible['11'] || 0}
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: center; padding: 1.5rem; background: var(--white); border-radius: 1rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);">
-                        <div style="font-size: 2rem; font-weight: 700; color: var(--health-primary); margin-bottom: 0.5rem;">
-                            ${(couponInfo.lipigas['15'] || 0) + (couponInfo.abastible['15'] || 0)}
-                        </div>
-                        <div style="color: var(--gray-700); font-weight: 600; font-size: 1rem;">
-                            🏺 15 KG TOTAL
-                        </div>
-                        <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.5rem;">
-                            L: ${couponInfo.lipigas['15'] || 0} | A: ${couponInfo.abastible['15'] || 0}
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: center; padding: 1.5rem; background: var(--white); border-radius: 1rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);">
-                        <div style="font-size: 2rem; font-weight: 700; color: var(--health-primary); margin-bottom: 0.5rem;">
-                            ${(couponInfo.lipigas['45'] || 0) + (couponInfo.abastible['45'] || 0)}
-                        </div>
-                        <div style="color: var(--gray-700); font-weight: 600; font-size: 1rem;">
-                            🏺 45 KG TOTAL
-                        </div>
-                        <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.5rem;">
-                            L: ${couponInfo.lipigas['45'] || 0} | A: ${couponInfo.abastible['45'] || 0}
-                        </div>
-                    </div>
-                </div>
-            </div>
         `;
 
         resultsContent.innerHTML = html;
