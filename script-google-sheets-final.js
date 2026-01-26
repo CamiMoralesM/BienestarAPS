@@ -601,13 +601,6 @@ displaySimplifiedResults(couponInfo) {
         // Panel administrativo
         document.getElementById('adminBtn').addEventListener('click', () => this.openAdminModal());
 
-        // Autenticación
-        document.getElementById('loginBtn').addEventListener('click', () => this.handleLogin());
-        document.getElementById('logoutBtn').addEventListener('click', () => this.handleLogout());
-
-        // Información de Google Sheets (reemplaza upload)
-        document.getElementById('uploadBtn').addEventListener('click', () => this.showGoogleSheetsInfo());
-
         // Cerrar modales
         document.querySelector('.close-btn').addEventListener('click', () => this.closeAdminModal());
         document.getElementById('adminLoginModal').addEventListener('click', (e) => {
