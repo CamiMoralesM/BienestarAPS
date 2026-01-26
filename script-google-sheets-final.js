@@ -450,69 +450,201 @@ findInGeneralSheet(sheet, rut) {
         (couponInfo.abastible?.['45'] ?? 0);
 
     const html = `
-        <!-- Información del Usuario -->
-        <div style="background: linear-gradient(135deg, var(--gray-25), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-md); margin-bottom: 2rem;">
-            <div style="font-size: 1.5rem; font-weight: 700; color: var(--health-primary); margin-bottom: 1rem; text-align: center;">
-                ${couponInfo.nombres} ${couponInfo.apellidos}
+    <!-- Información del Usuario -->
+            <div style="background: linear-gradient(135deg, var(--gray-25), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-md); margin-bottom: 2rem;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--health-primary); margin-bottom: 1rem; font-family: var(--font-display); text-align: center;">
+                    ${couponInfo.nombres} ${couponInfo.apellidos}
+                </div>
+                <div style="text-align: center; color: var(--gray-600); font-size: 1rem;">
+                    <strong>RUT:</strong> ${couponInfo.rut}
+                    ${couponInfo.establecimiento ? `<br><strong>Centro:</strong> ${couponInfo.establecimiento}` : ''}
+                </div>
             </div>
-            <div style="text-align: center; color: var(--gray-600); font-size: 1rem;">
-                <strong>RUT:</strong> ${couponInfo.rut}
-                ${couponInfo.establecimiento ? `<br><strong>Centro:</strong> ${couponInfo.establecimiento}` : ''}
+
+            <!-- Resumen General -->
+            <div style="background: linear-gradient(135deg, var(--white), var(--gray-25)); padding: 2.5rem; border-radius: 1.5rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-lg); margin-bottom: 2rem;">
+                <h3 style="text-align: center; margin-bottom: 2rem; color: var(--gray-800); font-size: 1.4rem; font-weight: 700;">📊 Resumen General</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+                    <div style="text-align: center; padding: 2rem; background: rgba(239, 68, 68, 0.05); border-radius: 1.5rem; border: 2px solid rgba(239, 68, 68, 0.1);">
+                        <div style="font-size: 3rem; font-weight: 800; color: var(--health-error); margin-bottom: 0.5rem; font-family: var(--font-display);">
+                            ${couponInfo.usadoEnElMes || 0}
+                        </div>
+                        <div style="color: var(--health-error); font-weight: 600; font-size: 1.2rem;">
+                            USADO EN EL MES
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 2rem; background: rgba(34, 197, 94, 0.05); border-radius: 1.5rem; border: 2px solid rgba(34, 197, 94, 0.1);">
+                        <div style="font-size: 3rem; font-weight: 800; color: var(--health-success); margin-bottom: 0.5rem; font-family: var(--font-display);">
+                            ${couponInfo.disponible || 4}
+                        </div>
+                        <div style="color: var(--health-success); font-weight: 600; font-size: 1.2rem;">
+                            DISPONIBLE
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- Resumen General -->
-        <div style="background: linear-gradient(135deg, var(--white), var(--gray-25)); padding: 2.5rem; border-radius: 1.5rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-lg); margin-bottom: 2rem;">
-            <h3 style="text-align: center; margin-bottom: 2rem; color: var(--gray-800); font-size: 1.4rem; font-weight: 700;">
-                📊 Resumen General
-            </h3>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+            <!-- Detalle por Empresa -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
                 
-                <!-- USADO -->
-                <div style="text-align: center; padding: 2rem; background: rgba(239, 68, 68, 0.05); border-radius: 1.5rem; border: 2px solid rgba(239, 68, 68, 0.1);">
-                    <div style="font-size: 3rem; font-weight: 800; color: var(--health-error); margin-bottom: 0.5rem;">
-                        ${couponInfo.usadoEnElMes ?? 0}
+                <!-- LIPIGAS -->
+                <div style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(14, 165, 233, 0.2); box-shadow: var(--shadow-lg);">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <h3 style="color: #0ea5e9; font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">⛽ LIPIGAS</h3>
+                        <div style="font-size: 2rem; font-weight: 700; color: #0ea5e9;">
+                            Total Usado: ${lipigasUsados}
+                        </div>
                     </div>
-                    <div style="color: var(--health-error); font-weight: 600; font-size: 1.2rem;">
-                        USADO EN EL MES
+                    
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(14, 165, 233, 0.1); border-radius: 1rem;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #0ea5e9; margin-bottom: 0.5rem;">
+                                ${couponInfo.lipigas['5'] || 0}
+                            </div>
+                            <div style="color: #0369a1; font-weight: 600; font-size: 0.9rem;">
+                                5 KG
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(14, 165, 233, 0.1); border-radius: 1rem;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #0ea5e9; margin-bottom: 0.5rem;">
+                                ${couponInfo.lipigas['11'] || 0}
+                            </div>
+                            <div style="color: #0369a1; font-weight: 600; font-size: 0.9rem;">
+                                11 KG
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(14, 165, 233, 0.1); border-radius: 1rem;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #0ea5e9; margin-bottom: 0.5rem;">
+                                ${couponInfo.lipigas['15'] || 0}
+                            </div>
+                            <div style="color: #0369a1; font-weight: 600; font-size: 0.9rem;">
+                                15 KG
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(14, 165, 233, 0.1); border-radius: 1rem;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #0ea5e9; margin-bottom: 0.5rem;">
+                                ${couponInfo.lipigas['45'] || 0}
+                            </div>
+                            <div style="color: #0369a1; font-weight: 600; font-size: 0.9rem;">
+                                45 KG
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- DISPONIBLE -->
-                <div style="text-align: center; padding: 2rem; background: rgba(34, 197, 94, 0.05); border-radius: 1.5rem; border: 2px solid rgba(34, 197, 94, 0.1);">
-                    <div style="font-size: 3rem; font-weight: 800; color: var(--health-success); margin-bottom: 0.5rem;">
-                        ${couponInfo.disponible ?? 0}
+                <!-- ABASTIBLE -->
+                <div style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(249, 115, 22, 0.2); box-shadow: var(--shadow-lg);">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <h3 style="color: #f97316; font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">🔥 ABASTIBLE</h3>
+                        <div style="font-size: 2rem; font-weight: 700; color: #f97316;">
+                            Total Usado: ${abastibleUsados}
+                        </div>
                     </div>
-                    <div style="color: var(--health-success); font-weight: 600; font-size: 1.2rem;">
-                        DISPONIBLE
+                    
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(249, 115, 22, 0.1); border-radius: 1rem;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #f97316; margin-bottom: 0.5rem;">
+                                ${couponInfo.abastible['5'] || 0}
+                            </div>
+                            <div style="color: #c2410c; font-weight: 600; font-size: 0.9rem;">
+                                5 KG
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(249, 115, 22, 0.1); border-radius: 1rem;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #f97316; margin-bottom: 0.5rem;">
+                                ${couponInfo.abastible['11'] || 0}
+                            </div>
+                            <div style="color: #c2410c; font-weight: 600; font-size: 0.9rem;">
+                                11 KG
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(249, 115, 22, 0.1); border-radius: 1rem;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #f97316; margin-bottom: 0.5rem;">
+                                ${couponInfo.abastible['15'] || 0}
+                            </div>
+                            <div style="color: #c2410c; font-weight: 600; font-size: 0.9rem;">
+                                15 KG
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(249, 115, 22, 0.1); border-radius: 1rem;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #f97316; margin-bottom: 0.5rem;">
+                                ${couponInfo.abastible['45'] || 0}
+                            </div>
+                            <div style="color: #c2410c; font-weight: 600; font-size: 0.9rem;">
+                                45 KG
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-            </div>
-        </div>
-
-        <!-- Detalle por Empresa -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
-            
-            <!-- LIPIGAS -->
-            <div style="background: linear-gradient(135deg, rgba(14,165,233,0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(14,165,233,0.2);">
-                <h3 style="text-align:center; color:#0ea5e9;">⛽ LIPIGAS</h3>
-                <p style="text-align:center; font-weight:700;">Total Usado: ${lipigasUsados}</p>
             </div>
 
-            <!-- ABASTIBLE -->
-            <div style="background: linear-gradient(135deg, rgba(249,115,22,0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(249,115,22,0.2);">
-                <h3 style="text-align:center; color:#f97316;">🔥 ABASTIBLE</h3>
-                <p style="text-align:center; font-weight:700;">Total Usado: ${abastibleUsados}</p>
+            <!-- Resumen Total por Categoría -->
+            <div style="background: linear-gradient(135deg, var(--gray-25), rgba(16, 185, 129, 0.02)); padding: 2rem; border-radius: 1.5rem; border: 1px solid rgba(16, 185, 129, 0.2); box-shadow: var(--shadow-lg);">
+                <h3 style="text-align: center; margin-bottom: 2rem; color: var(--health-primary); font-size: 1.4rem; font-weight: 700;">⚖️ Total por Categoría de Peso</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1.5rem;">
+                    
+                    <div style="text-align: center; padding: 1.5rem; background: var(--white); border-radius: 1rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--health-primary); margin-bottom: 0.5rem;">
+                            ${(couponInfo.lipigas['5'] || 0) + (couponInfo.abastible['5'] || 0)}
+                        </div>
+                        <div style="color: var(--gray-700); font-weight: 600; font-size: 1rem;">
+                            🏺 5 KG TOTAL
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.5rem;">
+                            L: ${couponInfo.lipigas['5'] || 0} | A: ${couponInfo.abastible['5'] || 0}
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 1.5rem; background: var(--white); border-radius: 1rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--health-primary); margin-bottom: 0.5rem;">
+                            ${(couponInfo.lipigas['11'] || 0) + (couponInfo.abastible['11'] || 0)}
+                        </div>
+                        <div style="color: var(--gray-700); font-weight: 600; font-size: 1rem;">
+                            🏺 11 KG TOTAL
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.5rem;">
+                            L: ${couponInfo.lipigas['11'] || 0} | A: ${couponInfo.abastible['11'] || 0}
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 1.5rem; background: var(--white); border-radius: 1rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--health-primary); margin-bottom: 0.5rem;">
+                            ${(couponInfo.lipigas['15'] || 0) + (couponInfo.abastible['15'] || 0)}
+                        </div>
+                        <div style="color: var(--gray-700); font-weight: 600; font-size: 1rem;">
+                            🏺 15 KG TOTAL
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.5rem;">
+                            L: ${couponInfo.lipigas['15'] || 0} | A: ${couponInfo.abastible['15'] || 0}
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 1.5rem; background: var(--white); border-radius: 1rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--health-primary); margin-bottom: 0.5rem;">
+                            ${(couponInfo.lipigas['45'] || 0) + (couponInfo.abastible['45'] || 0)}
+                        </div>
+                        <div style="color: var(--gray-700); font-weight: 600; font-size: 1rem;">
+                            🏺 45 KG TOTAL
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.5rem;">
+                            L: ${couponInfo.lipigas['45'] || 0} | A: ${couponInfo.abastible['45'] || 0}
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    `;
+        `;
 
-    resultsContent.innerHTML = html;
-    resultsSection.style.display = 'block';
-    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+        resultsContent.innerHTML = html;
+        resultsSection.style.display = 'block';
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
 
     // ========================================
