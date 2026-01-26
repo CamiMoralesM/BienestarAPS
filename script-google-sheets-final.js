@@ -420,7 +420,7 @@ findInGeneralSheet(sheet, rut) {
         return null;
     }
 
-function displaySimplifiedResults(couponInfo) {
+displaySimplifiedResults(couponInfo) {
     const resultsSection = document.getElementById('resultsSection');
     const resultsContent = document.getElementById('resultsContent');
 
