@@ -9,7 +9,7 @@ class BienestarAPSSystem {
         this.currentWorkbook = null;
         this.selectedFile = null;
         // TU GOOGLE SHEETS - Se actualiza automáticamente cuando editas online
-        this.EXCEL_URL = 'https://docs.google.com/spreadsheets/d/1Dqo2NUU0ufdHZ74SboNxihDcuep5UmHR/edit?gid=1498456993#gid=1498456993';
+        this.EXCEL_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTlgHF7u5CO6n4jaVol3Ov9a1jwgwyGg_ev3Gu3M1Q0fakiRhDDukjByTUjleeIPQ/pubhtml';
         this.init();
     }
 
