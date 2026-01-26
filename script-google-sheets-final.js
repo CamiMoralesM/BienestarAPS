@@ -8,8 +8,8 @@ class BienestarAPSSystem {
         this.currentUser = null;
         this.currentWorkbook = null;
         this.selectedFile = null;
-        // TU GOOGLE SHEETS - URL CORREGIDA PARA DESCARGA (NO EDICIÓN)
-        this.EXCEL_URL = 'https://docs.google.com/spreadsheets/d/1Dqo2NUU0ufdHZ74SboNxihDcuep5UmHR/export?format=xlsx';
+        // TU GOOGLE SHEETS - URL PUBLICADA CORRECTA PARA DESCARGA
+        this.EXCEL_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTlgHF7u5CO6n4jaVol3Ov9a1jwgwyGg_ev3Gu3M1Q0fakiRhDDukjByTUjleeIPQ/pub?output=xlsx';
         this.init();
     }
 
