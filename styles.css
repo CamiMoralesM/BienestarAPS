@@ -1216,10 +1216,10 @@ body {
     }
 }
 
-/* MÓVIL VERTICAL */
+/* MÓVIL VERTICAL - CENTRADO Y CUADRADO OPTIMIZADO */
 @media (max-width: 480px) {
     :root {
-        /* Espaciado aún más compacto */
+        /* Espaciado móvil compacto */
         --space-xs: 0.3rem;
         --space-sm: 0.5rem;
         --space-md: 0.7rem;
@@ -1229,100 +1229,191 @@ body {
         --space-3xl: 2rem;
     }
     
+    body {
+        padding: 0;
+        margin: 0;
+        overflow-x: hidden;
+    }
+    
+    /* HEADER CENTRADO MÓVIL */
     .header-content {
-        padding: var(--space-md);
-    }
-    
-    /* Logo mucho más grande en móvil */
-    .logo-bienestar {
-        height: 85px;
-        max-width: 140px;
-    }
-    
-    /* Título más pequeño en móvil */
-    .main-title {
-        font-size: 1.6rem;
-        margin-bottom: var(--space-sm);
+        padding: var(--space-lg) var(--space-sm);
         text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-lg);
+    }
+    
+    .logo-section {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+    
+    /* Logo centrado y proporcionado */
+    .logo-section > div {
+        flex-direction: column !important;
+        gap: 1rem !important;
+        text-align: center;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .logo-bienestar {
+        height: 90px;
+        width: auto;
+        max-width: 160px;
+        margin: 0 auto;
+        display: block;
+    }
+    
+    /* Títulos centrados y proporcionados */
+    .main-title {
+        font-size: 1.5rem;
+        margin: 0 auto var(--space-sm);
+        text-align: center;
+        line-height: 1.3;
+        max-width: 90%;
     }
     
     .subtitle {
         font-size: 0.85rem;
         text-align: center;
+        margin: 0 auto;
+        max-width: 90%;
     }
     
-    /* Hacer que logo y título se pongan en columna en pantallas muy pequeñas */
-    .logo-section > div {
-        flex-direction: column !important;
-        gap: 1rem !important;
+    /* CONTENEDOR PRINCIPAL CENTRADO */
+    .main-container {
+        padding: var(--space-lg) var(--space-sm);
+        gap: var(--space-xl);
+        max-width: 100%;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    /* CARDS CUADRADAS Y CENTRADAS */
+    .search-card,
+    .results-card,
+    .instructions-card {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+        padding: var(--space-xl) var(--space-lg);
+        border-radius: var(--radius-xl);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         text-align: center;
+        box-sizing: border-box;
     }
     
+    /* TÍTULOS DE SECCIÓN CENTRADOS */
     .section-title,
     .results-title,
     .instructions-title {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
         margin-bottom: var(--space-lg);
+        text-align: center;
+        width: 100%;
     }
     
-    /* BOTONES SUPER TOUCH-FRIENDLY */
+    /* FORMULARIO DE BÚSQUEDA CENTRADO Y CUADRADO */
+    .search-form {
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-lg);
+        align-items: center;
+    }
+    
+    /* INPUT CENTRADO Y CUADRADO */
+    .rut-input {
+        width: 100%;
+        max-width: 280px;
+        font-size: 1.2rem;
+        min-height: 56px;
+        padding: var(--space-xl);
+        border-width: 3px;
+        border-radius: var(--radius-lg);
+        text-align: center;
+        letter-spacing: 1px;
+        margin: 0 auto;
+        display: block;
+        box-sizing: border-box;
+    }
+    
+    /* BOTÓN DE BÚSQUEDA CUADRADO Y CENTRADO */
     .search-btn {
         width: 100%;
-        justify-content: center;
-        font-size: 1.1rem;
-        min-height: 60px;
-        padding: var(--space-xl);
-        border-radius: var(--radius-lg);
-    }
-    
-    .admin-btn {
-        min-height: 52px;
-        padding: var(--space-lg);
-        font-size: 0.95rem;
-    }
-    
-    /* INPUTS GRANDES PARA DEDOS */
-    .rut-input {
-        font-size: 1.3rem;
-        min-height: 60px;
-        padding: var(--space-xl);
-        border-width: 3px;
-        letter-spacing: 1px;
-    }
-    
-    .login-form input {
+        max-width: 280px;
         min-height: 56px;
-        font-size: 1.1rem;
         padding: var(--space-xl);
-        border-width: 3px;
+        font-size: 1.1rem;
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-sm);
+        margin: 0 auto;
+        box-sizing: border-box;
     }
     
-    /* INSTRUCCIONES COMPACTAS */
-    .instruction-item {
-        padding: var(--space-lg);
+    /* INSTRUCCIONES EN CUADRÍCULA CENTRADA */
+    .instructions-grid {
+        display: flex;
         flex-direction: column;
+        gap: var(--space-lg);
+        width: 100%;
+        max-width: 360px;
+        margin: 0 auto;
+    }
+    
+    .instruction-item {
+        width: 100%;
+        padding: var(--space-lg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         text-align: center;
         gap: var(--space-md);
+        border-radius: var(--radius-lg);
+        box-sizing: border-box;
     }
     
     .instruction-number {
-        align-self: center;
-        width: 52px;
-        height: 52px;
-        font-size: 1.3rem;
+        width: 48px;
+        height: 48px;
+        font-size: 1.2rem;
+        margin: 0 auto var(--space-sm);
+        flex-shrink: 0;
+    }
+    
+    .instruction-content {
+        width: 100%;
+        text-align: center;
     }
     
     .instruction-content h4 {
         margin-bottom: var(--space-sm);
-        font-size: 1.1rem;
+        font-size: 1rem;
+        text-align: center;
     }
     
     .instruction-content p {
-        font-size: 0.9rem;
-        line-height: 1.6;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        text-align: center;
     }
     
-    /* MODAL PANTALLA COMPLETA EN MÓVIL */
+    /* MODAL PANTALLA COMPLETA CENTRADO */
     .modal-content {
         width: 100%;
         height: 100vh;
@@ -1331,121 +1422,325 @@ body {
         border-radius: 0;
         display: flex;
         flex-direction: column;
+        align-items: center;
     }
     
     .modal-body {
-        padding: var(--space-md);
+        padding: var(--space-lg);
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
         flex: 1;
         overflow-y: auto;
-        max-height: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-sizing: border-box;
     }
     
     .modal-header {
+        width: 100%;
         padding: var(--space-lg);
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
         flex-shrink: 0;
     }
     
     .modal-header h3 {
         font-size: 1.2rem;
+        margin: 0 auto;
+        text-align: center;
     }
     
     .close-btn {
-        width: 48px;
-        height: 48px;
-        font-size: 1.8rem;
+        position: absolute;
+        right: var(--space-lg);
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        font-size: 1.6rem;
     }
     
-    /* FORMULARIOS STACK COMPLETO */
+    /* FORMULARIOS CENTRADOS */
     .login-form {
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
         gap: var(--space-lg);
+        align-items: center;
     }
     
-    .form-actions button,
-    .admin-actions button {
-        min-height: 52px;
-        font-size: 1rem;
+    .input-group {
+        width: 100%;
+        margin-bottom: var(--space-md);
+        text-align: center;
     }
     
-    /* ARCHIVOS MÓVIL PEQUEÑO */
-    .file-upload-section {
-        padding: var(--space-lg);
-        margin: 0 -0.25rem;
-    }
-    
-    .file-label {
-        padding: var(--space-xl);
-        min-height: 100px;
-    }
-    
-    .file-label .file-icon {
-        font-size: 1.8rem;
-    }
-    
-    .file-item {
-        padding: var(--space-md);
-        border-radius: var(--radius-lg);
-        background: var(--gray-50);
+    .input-label {
+        text-align: center;
+        display: block;
         margin-bottom: var(--space-sm);
     }
     
-    /* ALERTAS MÓVIL */
-    .alert {
-        padding: var(--space-lg);
-        margin: var(--space-md) -0.25rem;
-        font-size: 0.9rem;
+    .login-form input {
+        width: 100%;
+        min-height: 52px;
+        font-size: 1rem;
+        padding: var(--space-xl);
         border-width: 2px;
+        border-radius: var(--radius-lg);
+        text-align: center;
+        box-sizing: border-box;
     }
     
-    /* LOADING MÓVIL */
-    .loading-spinner {
-        padding: var(--space-2xl);
-        margin: var(--space-md);
-        width: calc(100% - 2rem);
+    /* BOTONES FORMULARIO CENTRADOS */
+    .form-actions {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+        align-items: center;
     }
     
-    .spinner {
-        width: 44px;
-        height: 44px;
-        border-width: 4px;
+    .form-actions button {
+        width: 100%;
+        max-width: 280px;
+        min-height: 48px;
+        font-size: 0.95rem;
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
-    /* RESULTADOS MÓVIL */
+    /* ACCIONES ADMIN CENTRADAS */
+    .admin-actions {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+        align-items: center;
+    }
+    
+    .admin-actions button {
+        width: 100%;
+        max-width: 280px;
+        min-height: 48px;
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* RESULTADOS CENTRADOS */
     .user-info {
+        width: 100%;
+        max-width: 380px;
+        margin: 0 auto var(--space-lg);
         padding: var(--space-lg);
-        margin: 0 -0.25rem var(--space-lg);
+        text-align: center;
+        border-radius: var(--radius-lg);
     }
     
     .user-name {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
         line-height: 1.3;
+        text-align: center;
+        margin-bottom: var(--space-md);
+    }
+    
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+        width: 100%;
     }
     
     .user-detail {
-        padding: var(--space-md);
+        padding: var(--space-lg);
+        border-radius: var(--radius-lg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
         gap: var(--space-sm);
+        width: 100%;
+        box-sizing: border-box;
     }
     
     .detail-label,
     .detail-value {
         font-size: 0.9rem;
+        text-align: center;
     }
     
-    /* ADMIN INFO MÓVIL */
-    .admin-info {
+    /* ARCHIVOS CENTRADOS */
+    .file-upload-section {
+        width: 100%;
+        max-width: 360px;
+        margin: 0 auto;
         padding: var(--space-lg);
-        margin: var(--space-md) -0.25rem;
+        border-radius: var(--radius-lg);
+        text-align: center;
+    }
+    
+    .file-label {
+        width: 100%;
+        padding: var(--space-xl);
+        min-height: 100px;
+        border-radius: var(--radius-lg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        box-sizing: border-box;
+    }
+    
+    .file-item {
+        width: 100%;
+        padding: var(--space-lg);
+        border-radius: var(--radius-lg);
+        background: var(--gray-50);
+        margin-bottom: var(--space-sm);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: var(--space-sm);
+        box-sizing: border-box;
+    }
+    
+    .delete-file-btn {
+        width: 100%;
+        max-width: 200px;
+        min-height: 44px;
+        padding: var(--space-sm) var(--space-lg);
+        border-radius: var(--radius-lg);
+        margin-top: var(--space-sm);
+    }
+    
+    /* ALERTAS CENTRADAS */
+    .alert {
+        width: 100%;
+        max-width: 360px;
+        margin: var(--space-md) auto;
+        padding: var(--space-lg);
+        font-size: 0.9rem;
+        border-width: 2px;
+        border-radius: var(--radius-lg);
+        text-align: center;
+        box-sizing: border-box;
+    }
+    
+    /* LOADING CENTRADO */
+    .loading-spinner {
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+        padding: var(--space-2xl);
+        border-radius: var(--radius-xl);
+        text-align: center;
+    }
+    
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border-width: 3px;
+        margin: 0 auto var(--space-lg);
+    }
+    
+    /* ADMIN INFO CENTRADO */
+    .admin-info {
+        width: 100%;
+        max-width: 360px;
+        margin: var(--space-md) auto;
+        padding: var(--space-lg);
+        border-radius: var(--radius-lg);
+        text-align: center;
+    }
+    
+    .admin-info h5 {
+        text-align: center;
+        margin-bottom: var(--space-lg);
+    }
+    
+    .admin-info ul {
+        width: 100%;
+        text-align: left;
+        max-width: 300px;
+        margin: 0 auto;
     }
     
     .admin-info li {
         padding: var(--space-md) 0;
         font-size: 0.85rem;
+        text-align: left;
     }
     
-    /* SECTION DESCRIPTIONS */
+    /* SECTION DESCRIPTIONS CENTRADAS */
     .section-description {
+        width: 100%;
+        max-width: 360px;
+        margin: 0 auto var(--space-lg);
         padding: var(--space-lg);
         font-size: 0.9rem;
-        margin: 0 -0.25rem var(--space-lg);
+        text-align: center;
+        border-radius: var(--radius-lg);
+    }
+    
+    /* WELCOME ADMIN CENTRADO */
+    .admin-welcome {
+        width: 100%;
+        max-width: 340px;
+        margin: 0 auto var(--space-xl);
+        text-align: center;
+        padding: var(--space-lg);
+        border-radius: var(--radius-lg);
+    }
+    
+    .welcome-text {
+        text-align: center;
+        font-size: 1rem;
+    }
+    
+    .welcome-subtitle {
+        text-align: center;
+        font-size: 0.85rem;
+    }
+    
+    /* HORARIO DE ACTUALIZACIÓN CENTRADO */
+    .instructions-card div[style*="linear-gradient"] {
+        width: 100%;
+        max-width: 320px;
+        margin: var(--space-lg) auto 0 !important;
+        padding: var(--space-lg) !important;
+        text-align: center !important;
+        border-radius: var(--radius-lg) !important;
+    }
+    
+    /* ASEGURAR QUE TODO ESTÉ CENTRADO */
+    .instructions-card > div:last-child {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+    
+    .instructions-card > div:last-child div {
+        text-align: center !important;
+    }
+    
+    .instructions-card > div:last-child p {
+        text-align: center !important;
+        margin: 0 !important;
     }
 }
 
