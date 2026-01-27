@@ -84,7 +84,7 @@ body {
 }
 
 /* ========================================
-   HEADER
+   HEADER CON LOGO
    ======================================== */
 
 .main-header {
@@ -102,7 +102,7 @@ body {
     margin: 0 auto;
     padding: var(--space-lg) var(--space-xl);
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     flex-wrap: wrap;
     gap: var(--space-lg);
@@ -110,6 +110,16 @@ body {
 
 .logo-section {
     flex: 1;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.logo-bienestar {
+    height: 80px;
+    width: auto;
+    object-fit: contain;
+    transition: all 0.3s ease;
 }
 
 .main-title {
@@ -1045,10 +1055,12 @@ body {
     }
     
     .header-content {
-        flex-direction: column;
-        text-align: center;
-        gap: var(--space-lg);
         padding: var(--space-lg) var(--space-md);
+    }
+    
+    /* Logo responsivo en tablet */
+    .logo-bienestar {
+        height: 60px;
     }
     
     .main-container {
@@ -1218,25 +1230,28 @@ body {
         padding: var(--space-md);
     }
     
-    .main-container {
-        padding: var(--space-lg) var(--space-sm);
-        gap: var(--space-lg);
+    /* Logo más pequeño en móvil */
+    .logo-bienestar {
+        height: 50px;
     }
     
-    .search-card,
-    .results-card,
-    .instructions-card {
-        padding: var(--space-lg);
-        margin: 0 -0.25rem; /* Aprovechar más espacio */
-    }
-    
+    /* Título más pequeño en móvil */
     .main-title {
         font-size: 1.6rem;
         margin-bottom: var(--space-sm);
+        text-align: center;
     }
     
     .subtitle {
         font-size: 0.85rem;
+        text-align: center;
+    }
+    
+    /* Hacer que logo y título se pongan en columna en pantallas muy pequeñas */
+    .logo-section > div {
+        flex-direction: column !important;
+        gap: 1rem !important;
+        text-align: center;
     }
     
     .section-title,
