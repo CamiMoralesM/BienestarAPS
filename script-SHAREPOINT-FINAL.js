@@ -1,282 +1,663 @@
+/**
+ * BIENESTAR APS - SISTEMA DE CUPONES DE GAS
+ * Versión FINAL SIMPLIFICADA - Solo búsqueda de cupones
+ * Conectado a SharePoint
+ */
+
 class BienestarAPSSystem {
     constructor() {
-        this.sharePointUrls = [
-            'https://cmesapa-my.sharepoint.com/:x:/g/personal/alejandro_ponce_cmpuentealto_cl/IQDMU9-cU2OESYO8ETvodgptAU2lRYCtsFgLjHcMfgBQd-I?e=z8r8sT&download=1',
-            'https://cmesapa-my.sharepoint.com/_layouts/15/download.aspx?share=IQDMU9-cU2OESYO8ETvodgptAU2lRYCtsFgLjHcMfgBQd-I',
-            'https://cmesapa-my.sharepoint.com/:x:/g/personal/alejandro_ponce_cmpuentealto_cl/IQDMU9-cU2OESYO8ETvodgptAU2lRYCtsFgLjHcMfgBQd-I'
-        ];
-        this.cache = { data: null, timestamp: null };
-        this.cacheTimeout = 5 * 60 * 1000; // 5 minutos
-        this.initializeSystem();
+        this.currentWorkbook = null;
+        // SHAREPOINT - URL DE DESCARGA DIRECTA
+        this.EXCEL_URL = 'https://cmesapa-my.sharepoint.com/:x:/g/personal/alejandro_ponce_cmpuentealto_cl/IQDMU9-cU2OESYO8ETvodgptAU2lRYCtsFgLjHcMfgBQd-I?e=z8r8sT&download=1';
+        // URL alternativa si la principal no funciona
+        this.BACKUP_URL = 'https://cmesapa-my.sharepoint.com/personal/alejandro_ponce_cmpuentealto_cl/_layouts/15/download.aspx?share=IQDMU9-cU2OESYO8ETvodgptAU2lRYCtsFgLjHcMfgBQd-I';
+        this.init();
     }
 
-    initializeSystem() {
-        // ✅ LOG GENÉRICO - NO SENSIBLE
-        console.log('Sistema iniciado');
-        this.loadSharePointData();
+    init() {
+        this.bindEvents();
+        // Cargar datos inmediatamente
+        this.loadExcelFromSharePoint();
     }
 
-    async loadSharePointData() {
-        console.log('Conectando a base de datos...');
-        
-        // Verificar cache
-        if (this.cache.data && this.isValidCache()) {
-            console.log('Usando datos en caché');
-            return this.cache.data;
-        }
+    // ========================================
+    // SHAREPOINT - CARGA AUTOMÁTICA
+    // ========================================
 
-        // Intentar descarga con múltiples métodos
-        for (let i = 0; i < this.sharePointUrls.length; i++) {
-            try {
-                // ❌ ELIMINADO: console.log('URL principal:', this.sharePointUrls[i]);
-                console.log(`Método ${i + 1}: Conectando...`);
-                
-                const response = await fetch(this.sharePointUrls[i], {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
-                });
-
-                if (!response.ok) {
-                    console.log(`Método ${i + 1}: Error ${response.status}`);
-                    continue;
+    async loadExcelFromSharePoint() {
+        try {
+            console.log('📊 Descargando datos desde SharePoint...');
+            console.log('🔗 URL principal:', this.EXCEL_URL);
+            
+            // Intentar caché reciente primero (5 minutos)
+            const cachedData = localStorage.getItem('gasSystemData');
+            if (cachedData) {
+                const fileData = JSON.parse(cachedData);
+                if (fileData.workbook && this.isRecentCache(fileData.downloadDate, 5)) {
+                    this.currentWorkbook = fileData.workbook;
+                    console.log('⚡ Usando caché reciente (menos de 5 min)');
+                    return true;
                 }
-
-                const contentType = response.headers.get('content-type');
-                if (!this.isExcelContent(contentType)) {
-                    console.log(`Método ${i + 1}: Tipo contenido inválido`);
-                    continue;
-                }
-
-                const arrayBuffer = await response.arrayBuffer();
-                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-                
-                console.log(`Método ${i + 1}: Conexión exitosa`);
-                console.log('Archivo procesado:', `${Math.round(arrayBuffer.byteLength / 1024)} KB`);
-                
-                // ❌ ELIMINADO: console.log('Hojas encontradas:', workbook.SheetNames.length);
-                console.log('Datos cargados correctamente');
-                
-                // Actualizar cache
-                this.cache = { data: workbook, timestamp: Date.now() };
-                return workbook;
-
-            } catch (error) {
-                console.log(`Método ${i + 1}: Falló conexión`);
-                // ❌ ELIMINADO: console.error('Error detallado:', error);
             }
+
+            // Intentar descarga desde SharePoint
+            console.log('🌐 Iniciando descarga desde SharePoint...');
+            
+            // Método 1: URL con download=1
+            let success = await this.trySharePointDownload(this.EXCEL_URL, 'Método 1');
+            if (success) return true;
+
+            // Método 2: URL alternativa de SharePoint
+            if (this.BACKUP_URL) {
+                console.log('🔄 Intentando método alternativo...');
+                success = await this.trySharePointDownload(this.BACKUP_URL, 'Método 2');
+                if (success) return true;
+            }
+
+            // Método 3: Intentar sin parámetro download
+            const urlSinDownload = this.EXCEL_URL.replace('&download=1', '');
+            console.log('🔄 Intentando sin parámetro download...');
+            success = await this.trySharePointDownload(urlSinDownload, 'Método 3');
+            if (success) return true;
+            
+            // Usar caché antiguo como fallback
+            console.log('📋 Intentando usar datos guardados localmente...');
+            const hasOldCache = this.loadFromOldCache();
+            this.showDataStatus(false, 'Problemas conectando a SharePoint');
+            return hasOldCache;
+            
+        } catch (error) {
+            console.error('❌ Error general descargando desde SharePoint:', error.message);
+            const hasOldCache = this.loadFromOldCache();
+            this.showDataStatus(false, error.message);
+            return hasOldCache;
         }
-
-        throw new Error('No se pudo conectar a la base de datos');
     }
 
-    isValidCache() {
-        return Date.now() - this.cache.timestamp < this.cacheTimeout;
+    async trySharePointDownload(url, methodName) {
+        try {
+            console.log(`🔗 ${methodName}: ${url.substring(0, 80)}...`);
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-cache',
+                headers: {
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'User-Agent': navigator.userAgent
+                }
+            });
+
+            console.log(`📡 ${methodName} - Respuesta:`, response.status, response.statusText);
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error(`SharePoint: Archivo no encontrado (${response.status})`);
+                } else if (response.status === 403) {
+                    throw new Error(`SharePoint: Sin permisos de acceso (${response.status})`);
+                } else if (response.status === 401) {
+                    throw new Error(`SharePoint: Autenticación requerida (${response.status})`);
+                } else {
+                    throw new Error(`SharePoint: Error ${response.status} - ${response.statusText}`);
+                }
+            }
+
+            const contentType = response.headers.get('content-type') || '';
+            console.log(`📄 ${methodName} - Content-Type:`, contentType);
+
+            // Verificar que sea realmente un archivo Excel
+            if (contentType.includes('text/html') || contentType.includes('text/plain')) {
+                throw new Error('SharePoint devolvió HTML en lugar de Excel - revisar permisos');
+            }
+
+            const arrayBuffer = await response.arrayBuffer();
+            console.log(`📏 ${methodName} - Archivo descargado:`, arrayBuffer.byteLength, 'bytes');
+            
+            if (arrayBuffer.byteLength < 1000) {
+                throw new Error('Archivo muy pequeño - posible error de SharePoint');
+            }
+            
+            const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+            console.log(`📋 ${methodName} - Hojas en el Excel:`, workbook.SheetNames);
+            
+            if (workbook.SheetNames.length === 0) {
+                throw new Error('Excel sin hojas - archivo corrupto');
+            }
+            
+            this.currentWorkbook = workbook;
+            
+            // Guardar en caché con timestamp
+            const fileData = {
+                name: 'cupones-gas-sharepoint.xlsx',
+                downloadDate: new Date().toISOString(),
+                source: 'sharepoint',
+                method: methodName,
+                url: url,
+                workbook: workbook
+            };
+            
+            try {
+                localStorage.setItem('gasSystemData', JSON.stringify(fileData));
+                console.log(`💾 ${methodName} - Datos guardados en caché`);
+            } catch (storageError) {
+                console.warn('⚠️ No se pudo guardar en caché:', storageError.message);
+            }
+            
+            console.log(`✅ ${methodName} - Descarga exitosa desde SharePoint`);
+            this.showDataStatus(true, `Conectado vía ${methodName}`);
+            return true;
+            
+        } catch (error) {
+            console.error(`❌ ${methodName} falló:`, error.message);
+            return false;
+        }
     }
 
-    isExcelContent(contentType) {
-        return contentType && (
-            contentType.includes('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') ||
-            contentType.includes('application/vnd.ms-excel')
-        );
+    isRecentCache(downloadDate, minutes = 5) {
+        if (!downloadDate) return false;
+        const cacheAge = Date.now() - new Date(downloadDate).getTime();
+        const maxAge = minutes * 60 * 1000;
+        return cacheAge < maxAge;
     }
 
-    async searchRUT(rut) {
-        if (!rut || rut.trim() === '') {
-            this.showError('Por favor ingrese un RUT válido');
+    loadFromOldCache() {
+        try {
+            const cachedData = localStorage.getItem('gasSystemData');
+            if (cachedData) {
+                const fileData = JSON.parse(cachedData);
+                if (fileData.workbook) {
+                    this.currentWorkbook = fileData.workbook;
+                    console.log('📋 Usando datos guardados localmente');
+                    return true;
+                }
+            }
+            return false;
+        } catch {
+            return false;
+        }
+    }
+
+    showDataStatus(success, errorMessage = '') {
+        // Mostrar estado en la interfaz
+        const statusElement = document.getElementById('dataStatus');
+        if (statusElement) {
+            if (success) {
+                statusElement.innerHTML = '🟢 Datos actualizados desde SharePoint';
+                statusElement.className = 'alert alert-success';
+            } else {
+                statusElement.innerHTML = `🔴 Problemas conectando a SharePoint: ${errorMessage}`;
+                statusElement.className = 'alert alert-warning';
+            }
+            statusElement.style.display = 'block';
+            
+            // Ocultar después de 5 segundos
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 5000);
+        }
+    }
+
+    // ========================================
+    // BÚSQUEDA DE CUPONES
+    // ========================================
+    
+    async searchCoupons() {
+        const rutInput = document.getElementById('rutInput');
+        const rut = rutInput.value.trim();
+
+        if (!rut) {
+            this.showAlert('📝 Por favor ingrese un RUT', 'error');
+            rutInput.focus();
             return;
         }
 
-        const cleanRUT = this.formatRUT(rut.replace(/\./g, '').replace(/-/g, '').toUpperCase());
-        console.log('Buscando RUT...');
+        if (!this.validateRUT(rut)) {
+            this.showAlert('❌ RUT inválido. Formato: 12345678-9', 'error');
+            rutInput.focus();
+            return;
+        }
 
         this.showLoading(true);
 
         try {
-            const workbook = await this.loadSharePointData();
-            const result = this.processWorkbook(workbook, cleanRUT);
-            
-            if (result.found) {
-                console.log('Búsqueda exitosa');
-                this.displayResults(result);
-            } else {
-                console.log('RUT no encontrado');
-                this.showError('RUT no encontrado en el sistema. Verifique el número ingresado.');
+            // Intentar recargar datos recientes antes de buscar
+            if (!this.currentWorkbook || this.shouldRefreshData()) {
+                const loaded = await this.loadExcelFromSharePoint();
+                if (!loaded) {
+                    this.showAlert('📊 No se pueden cargar los datos actuales desde SharePoint. Verifique su conexión.', 'warning');
+                    this.showLoading(false);
+                    return;
+                }
             }
+
+            const normalizedRUT = this.normalizeRUT(rut);
+            console.log('🔍 Buscando RUT:', normalizedRUT);
+            
+            const couponInfo = this.findCouponInfoInExcel(this.currentWorkbook, normalizedRUT);
+            
+            this.displaySimplifiedResults(couponInfo);
+            this.showLoading(false);
+            
         } catch (error) {
-            console.log('Error en la búsqueda');
-            this.showError('Error al buscar datos. Intente nuevamente en unos momentos.');
-        } finally {
+            console.error('Error al buscar cupones:', error);
+            this.showAlert('❌ Error al procesar la búsqueda', 'error');
             this.showLoading(false);
         }
     }
 
-    processWorkbook(workbook, cleanRUT) {
-        const sheetsToSearch = ['GENERAL', 'CUPONES DISPONIBLES', 'BASE DE DATOS'];
+    shouldRefreshData() {
+        const cachedData = localStorage.getItem('gasSystemData');
+        if (!cachedData) return true;
         
-        for (const sheetName of sheetsToSearch) {
-            if (!workbook.Sheets[sheetName]) continue;
-            
-            console.log(`Procesando datos...`);
-            const worksheet = workbook.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-            
-            const result = this.searchInSheet(jsonData, cleanRUT, sheetName);
-            if (result.found) {
-                console.log('Datos encontrados');
+        try {
+            const fileData = JSON.parse(cachedData);
+            // Refrescar si los datos tienen más de 10 minutos
+            return !this.isRecentCache(fileData.downloadDate, 10);
+        } catch {
+            return true;
+        }
+    }
+
+    // ========================================
+    // VALIDACIÓN RUT Y BÚSQUEDA EN EXCEL
+    // ========================================
+
+    validateRUT(rut) {
+        const cleanRUT = rut.replace(/[.-]/g, '');
+        if (cleanRUT.length < 8) return false;
+        
+        const rutNumber = cleanRUT.slice(0, -1);
+        const dv = cleanRUT.slice(-1).toLowerCase();
+        
+        let sum = 0;
+        let multiplier = 2;
+        
+        for (let i = rutNumber.length - 1; i >= 0; i--) {
+            sum += parseInt(rutNumber[i]) * multiplier;
+            multiplier = multiplier === 7 ? 2 : multiplier + 1;
+        }
+        
+        const remainder = sum % 11;
+        const calculatedDV = remainder === 0 ? '0' : remainder === 1 ? 'k' : (11 - remainder).toString();
+        
+        return dv === calculatedDV;
+    }
+
+    normalizeRUT(rut) {
+        const cleanRUT = rut.replace(/[.-\s]/g, '');
+        if (cleanRUT.length < 8) return rut;
+        
+        const rutNumber = cleanRUT.slice(0, -1);
+        const dv = cleanRUT.slice(-1).toUpperCase();
+        
+        return rutNumber + '-' + dv;
+    }
+
+    formatRUT(e) {
+        let value = e.target.value.replace(/[^0-9kK]/g, '');
+        if (value.length > 1) {
+            const rut = value.slice(0, -1);
+            const dv = value.slice(-1);
+            value = rut + '-' + dv;
+        }
+        e.target.value = value;
+    }
+
+    findCouponInfoInExcel(workbook, rut) {
+        // PRIMERO: Buscar en hoja GENERAL (datos reales)
+        const generalSheet = workbook.Sheets['GENERAL'];
+        if (generalSheet) {
+            const result = this.findInGeneralSheet(generalSheet, rut);
+            if (result) {
                 return result;
             }
         }
-        
-        return { found: false };
-    }
 
-    searchInSheet(jsonData, cleanRUT, sheetName) {
-        let totalUsado = 0;
-        let totalDisponible = 0;
-        let personData = null;
-        let usadoValue = null;
-        let disponibleValue = null;
-
-        for (let i = 0; i < jsonData.length; i++) {
-            const row = jsonData[i];
-            const cellRUT = row[4] ? String(row[4]).replace(/\./g, '').replace(/-/g, '').toUpperCase() : '';
-
-            if (cellRUT === cleanRUT) {
-                if (!personData) {
-                    personData = {
-                        nombre: `${row[5] || ''} ${row[6] || ''} ${row[7] || ''}`.trim(),
-                        establecimiento: row[8] || '',
-                        rut: cleanRUT
-                    };
-
-                    if (sheetName === 'GENERAL') {
-                        usadoValue = this.parseNumericValue(row[31]);
-                        disponibleValue = this.parseNumericValue(row[32]);
-                    }
-                }
-
-                // Sumar cupones de Lipigas (columnas J-M)
-                totalUsado += this.parseNumericValue(row[9]);   // J
-                totalUsado += this.parseNumericValue(row[10]);  // K  
-                totalUsado += this.parseNumericValue(row[11]);  // L
-                totalUsado += this.parseNumericValue(row[12]);  // M
-
-                // Sumar cupones de Abastible (columnas N-Q)
-                totalUsado += this.parseNumericValue(row[13]);  // N
-                totalUsado += this.parseNumericValue(row[14]);  // O
-                totalUsado += this.parseNumericValue(row[15]);  // P
-                totalUsado += this.parseNumericValue(row[16]);  // Q
+        // SEGUNDO: Si no encuentra en GENERAL, buscar en CUPONES DISPONIBLES
+        const cuponesSheet = workbook.Sheets['CUPONES DISPONIBLES'];
+        if (cuponesSheet) {
+            const result = this.findInCuponesDisponibles(cuponesSheet, rut);
+            if (result) {
+                return result;
             }
         }
 
-        if (personData) {
-            const finalUsado = sheetName === 'GENERAL' && usadoValue !== null ? usadoValue : totalUsado;
-            const finalDisponible = sheetName === 'GENERAL' && disponibleValue !== null ? disponibleValue : Math.max(0, totalDisponible);
-
-            return {
-                found: true,
-                personData,
-                usado: finalUsado,
-                disponible: finalDisponible,
-                totalUsado,
-                sheetName
-            };
-        }
-
-        return { found: false };
+        // TERCERO: Si no encuentra en ninguna, buscar en BASE DE DATOS
+        return this.findUserInBaseDatos(workbook, rut);
     }
 
-    parseNumericValue(value) {
+    findInGeneralSheet(sheet, rut) {
+        console.log('🔍 Buscando en hoja GENERAL...');
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
+
+        let encontrado = false;
+
+        let datosUsuario = {
+            rut: rut,
+            nombres: '',
+            apellidos: '',
+            establecimiento: '',
+            lipigas: { '5': 0, '11': 0, '15': 0, '45': 0 },
+            abastible: { '5': 0, '11': 0, '15': 0, '45': 0 },
+            usadoEnElMes: 0,
+            disponible: 4
+        };
+
+        for (let i = 5; i < jsonData.length; i++) {
+            const row = jsonData[i];
+
+            if (row && row[4]) { // Columna E - RUT
+                const rutEnFila = String(row[4]).trim();
+                const rutNormalizado = this.normalizeRUT(rutEnFila);
+
+                if (rutNormalizado === rut) {
+                    encontrado = true;
+                    console.log(`✅ RUT encontrado en GENERAL fila ${i + 1}`);
+
+                    // Guardar datos solo la primera vez
+                    if (!datosUsuario.nombres) {
+                        datosUsuario.nombres = row[5] || '';
+                        datosUsuario.apellidos = row[6] || '';
+                        datosUsuario.establecimiento = row[7] || '';
+
+                        // AF - USADO EN EL MES (columna 31, índice 31)
+                        const usadoExcel = this.parseNumber(row[31]);
+                        datosUsuario.usadoEnElMes = Number.isFinite(usadoExcel) ? usadoExcel : 0;
+
+                        // AG - DISPONIBLE (columna 32, índice 32)
+                        const disponibleExcel = this.parseNumber(row[32]);
+                        datosUsuario.disponible = Number.isFinite(disponibleExcel) ? disponibleExcel : 4;
+                        
+                        console.log(`📊 USADO EN EL MES (AF): ${datosUsuario.usadoEnElMes}`);
+                        console.log(`📊 DISPONIBLE (AG): ${datosUsuario.disponible}`);
+                    }
+
+                    // Sumar cupones Lipigas (J, K, L, M - índices 9, 10, 11, 12)
+                    datosUsuario.lipigas['5'] += this.parseNumber(row[9]) || 0;
+                    datosUsuario.lipigas['11'] += this.parseNumber(row[10]) || 0;
+                    datosUsuario.lipigas['15'] += this.parseNumber(row[11]) || 0;
+                    datosUsuario.lipigas['45'] += this.parseNumber(row[12]) || 0;
+
+                    // Sumar cupones Abastible (N, O, P, Q - índices 13, 14, 15, 16)
+                    datosUsuario.abastible['5'] += this.parseNumber(row[13]) || 0;
+                    datosUsuario.abastible['11'] += this.parseNumber(row[14]) || 0;
+                    datosUsuario.abastible['15'] += this.parseNumber(row[15]) || 0;
+                    datosUsuario.abastible['45'] += this.parseNumber(row[16]) || 0;
+                }
+            }
+        }
+
+        if (!encontrado) {
+            console.log('❌ RUT no encontrado en hoja GENERAL');
+            return null;
+        }
+
+        return {
+            encontrado: true,
+            rut: datosUsuario.rut,
+            nombres: datosUsuario.nombres,
+            apellidos: datosUsuario.apellidos,
+            establecimiento: datosUsuario.establecimiento,
+            lipigas: datosUsuario.lipigas,
+            abastible: datosUsuario.abastible,
+            usadoEnElMes: datosUsuario.usadoEnElMes,
+            disponible: datosUsuario.disponible
+        };
+    }
+
+    findInCuponesDisponibles(sheet, rut) {
+        console.log('🔍 Buscando en hoja CUPONES DISPONIBLES...');
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
+        
+        let foundRow = null;
+        for (let i = 0; i < jsonData.length; i++) {
+            const row = jsonData[i];
+            if (row && row[2] && this.normalizeRUT(row[2]) === rut) {
+                foundRow = i;
+                break;
+            }
+        }
+
+        if (foundRow === null) {
+            console.log('❌ RUT no encontrado en CUPONES DISPONIBLES');
+            return null;
+        }
+
+        const row = jsonData[foundRow];
+        console.log(`✅ RUT encontrado en CUPONES DISPONIBLES fila ${foundRow + 1}`);
+        
+        return {
+            encontrado: true,
+            rut: this.normalizeRUT(row[2]) || rut,
+            nombres: row[3] || '',
+            apellidos: row[4] || '',
+            lipigas: {
+                '5': this.parseNumber(row[5]) || 0,
+                '11': this.parseNumber(row[6]) || 0,
+                '15': this.parseNumber(row[7]) || 0,
+                '45': this.parseNumber(row[8]) || 0
+            },
+            abastible: {
+                '5': this.parseNumber(row[9]) || 0,
+                '11': this.parseNumber(row[10]) || 0,
+                '15': this.parseNumber(row[11]) || 0,
+                '45': this.parseNumber(row[12]) || 0
+            },
+            usadoEnElMes: this.parseNumber(row[13]) || 0,
+            disponible: Math.max(0, 4 - (this.parseNumber(row[13]) || 0)) // Calculado: 4 - USADO
+        };
+    }
+
+    findUserInBaseDatos(workbook, rut) {
+        const sheet = workbook.Sheets['BASE DE DATOS'];
+        if (!sheet) {
+            return null;
+        }
+
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
+        
+        for (let i = 0; i < jsonData.length; i++) {
+            const row = jsonData[i];
+            if (row && row[4] && this.normalizeRUT(row[4]) === rut) {
+                return {
+                    encontrado: true,
+                    rut: this.normalizeRUT(row[4]),
+                    nombres: row[5] || '',
+                    apellidos: row[6] || '',
+                    establecimiento: row[7] || '',
+                    lipigas: { '5': 0, '11': 0, '15': 0, '45': 0 },
+                    abastible: { '5': 0, '11': 0, '15': 0, '45': 0 },
+                    usadoEnElMes: 0,
+                    disponible: 4 // Usuario nuevo, 4 disponibles
+                };
+            }
+        }
+
+        return null;
+    }
+
+    displaySimplifiedResults(couponInfo) {
+        const resultsSection = document.getElementById('resultsSection');
+        const resultsContent = document.getElementById('resultsContent');
+
+        if (!couponInfo || !couponInfo.encontrado) {
+            resultsContent.innerHTML = `
+                <div style="text-align: center; padding: 3rem; color: var(--health-error);">
+                    <h3 style="margin-bottom: 1rem; font-size: 1.5rem;">🔍 RUT no encontrado</h3>
+                    <p style="color: var(--gray-600);">El RUT ingresado no se encuentra en la base de datos.</p>
+                </div>
+            `;
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+        }
+
+        // Totales usados
+        const lipigasUsados =
+            (couponInfo.lipigas?.['5'] ?? 0) +
+            (couponInfo.lipigas?.['11'] ?? 0) +
+            (couponInfo.lipigas?.['15'] ?? 0) +
+            (couponInfo.lipigas?.['45'] ?? 0);
+
+        const abastibleUsados =
+            (couponInfo.abastible?.['5'] ?? 0) +
+            (couponInfo.abastible?.['11'] ?? 0) +
+            (couponInfo.abastible?.['15'] ?? 0) +
+            (couponInfo.abastible?.['45'] ?? 0);
+
+        const html = `
+        <!-- Información del Usuario -->
+        <div style="background: linear-gradient(135deg, var(--gray-25), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-md); margin-bottom: 2rem;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--health-primary); margin-bottom: 1rem; font-family: var(--font-display); text-align: center;">
+                ${couponInfo.nombres} ${couponInfo.apellidos}
+            </div>
+            <div style="text-align: center; color: var(--gray-600); font-size: 1rem;">
+                <strong>RUT:</strong> ${couponInfo.rut}
+                ${couponInfo.establecimiento ? `<br><strong>Centro:</strong> ${couponInfo.establecimiento}` : ''}
+            </div>
+        </div>
+
+        <!-- Resumen General -->
+        <div style="background: linear-gradient(135deg, var(--white), var(--gray-25)); padding: 2.5rem; border-radius: 1.5rem; border: 1px solid var(--gray-200); box-shadow: var(--shadow-lg); margin-bottom: 2rem;">
+            <h3 style="text-align: center; margin-bottom: 2rem; color: var(--gray-800); font-size: 1.4rem; font-weight: 700;">📊 Resumen General</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+                <div style="text-align: center; padding: 2rem; background: rgba(239, 68, 68, 0.05); border-radius: 1.5rem; border: 2px solid rgba(239, 68, 68, 0.1);">
+                    <div style="font-size: 3rem; font-weight: 800; color: var(--health-error); margin-bottom: 0.5rem; font-family: var(--font-display);">
+                        ${couponInfo.usadoEnElMes ?? 0}
+                    </div>
+                    <div style="color: var(--health-error); font-weight: 600; font-size: 1.2rem;">USADO EN EL MES</div>
+                </div>
+                <div style="text-align: center; padding: 2rem; background: rgba(34, 197, 94, 0.05); border-radius: 1.5rem; border: 2px solid rgba(34, 197, 94, 0.1);">
+                    <div style="font-size: 3rem; font-weight: 800; color: var(--health-success); margin-bottom: 0.5rem; font-family: var(--font-display);">
+                        ${couponInfo.disponible ?? 4}
+                    </div>
+                    <div style="color: var(--health-success); font-weight: 600; font-size: 1.2rem;">DISPONIBLE</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detalle por Empresa -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
+
+            <!-- LIPIGAS -->
+            <div style="background: linear-gradient(135deg, rgba(14,165,233,0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(14,165,233,0.2); box-shadow: var(--shadow-lg);">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h3 style="color: #0ea5e9; font-size: 1.5rem; font-weight: 800;">⛽ LIPIGAS</h3>
+                    <div style="font-size: 2rem; font-weight: 700; color: #0ea5e9;">Total Usado: ${lipigasUsados}</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                    ${['5','11','15','45'].map(kg => `
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(14,165,233,0.1); border-radius: 1rem;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #0ea5e9; margin-bottom: 0.5rem;">
+                                ${couponInfo.lipigas?.[kg] ?? 0}
+                            </div>
+                            <div style="color: #0369a1; font-weight: 600; font-size: 0.9rem;">
+                                ${kg} KG
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <!-- ABASTIBLE -->
+            <div style="background: linear-gradient(135deg, rgba(249,115,22,0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(249,115,22,0.2); box-shadow: var(--shadow-lg);">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h3 style="color: #f97316; font-size: 1.5rem; font-weight: 800;">🔥 ABASTIBLE</h3>
+                    <div style="font-size: 2rem; font-weight: 700; color: #f97316;">Total Usado: ${abastibleUsados}</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                    ${['5','11','15','45'].map(kg => `
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(249,115,22,0.1); border-radius: 1rem;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #f97316; margin-bottom: 0.5rem;">
+                                ${couponInfo.abastible?.[kg] ?? 0}
+                            </div>
+                            <div style="color: #c2410c; font-weight: 600; font-size: 0.9rem;">
+                                ${kg} KG
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+        `;
+
+        resultsContent.innerHTML = html;
+        resultsSection.style.display = 'block';
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ========================================
+    // EVENTOS SIMPLIFICADOS
+    // ========================================
+
+    bindEvents() {
+        // Búsqueda de cupones
+        document.getElementById('searchBtn').addEventListener('click', () => this.searchCoupons());
+        document.getElementById('rutInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.searchCoupons();
+        });
+        document.getElementById('rutInput').addEventListener('input', (e) => this.formatRUT(e));
+    }
+
+    // ========================================
+    // UTILIDADES
+    // ========================================
+
+    parseNumber(value) {
         if (value === null || value === undefined || value === '') return 0;
-        const parsed = parseFloat(value);
-        return isNaN(parsed) ? 0 : parsed;
+        const num = parseFloat(value.toString().replace(/[^\d.-]/g, ''));
+        return isNaN(num) ? 0 : num;
     }
-
-    formatRUT(rut) {
-        if (rut.length < 2) return rut;
-        
-        const dv = rut.slice(-1);
-        const numbers = rut.slice(0, -1);
-        
-        return numbers.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '-' + dv;
-    }
-
-    displayResults(result) {
-        document.getElementById('personName').textContent = result.personData.nombre.toUpperCase();
-        document.getElementById('personRUT').textContent = result.personData.rut;
-        
-        if (result.personData.establecimiento) {
-            document.getElementById('personCenter').textContent = result.personData.establecimiento;
-            document.getElementById('centerInfo').style.display = 'block';
-        } else {
-            document.getElementById('centerInfo').style.display = 'none';
-        }
-
-        document.getElementById('usadoCount').textContent = result.usado;
-        document.getElementById('disponibleCount').textContent = result.disponible;
-
-        document.getElementById('resultsSection').style.display = 'block';
-        document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
-    }
-
+    
     showLoading(show) {
-        const button = document.getElementById('searchButton');
-        const input = document.getElementById('rutInput');
-        
-        if (show) {
-            button.textContent = 'Buscando...';
-            button.disabled = true;
-            input.disabled = true;
-        } else {
-            button.textContent = 'Buscar Cupones';
-            button.disabled = false;
-            input.disabled = false;
-        }
+        const overlay = document.getElementById('loadingOverlay');
+        overlay.style.display = show ? 'block' : 'none';
+        document.body.style.overflow = show ? 'hidden' : 'auto';
     }
 
-    showError(message) {
-        alert(message);
-        document.getElementById('resultsSection').style.display = 'none';
+    showAlert(message, type = 'info') {
+        const existingAlerts = document.querySelectorAll('.alert');
+        existingAlerts.forEach(alert => {
+            if (!alert.id.includes('Error') && !alert.id.includes('Success') && !alert.id.includes('dataStatus')) {
+                alert.remove();
+            }
+        });
+
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type}`;
+        alert.textContent = message;
+        alert.style.cursor = 'pointer';
+
+        const searchCard = document.querySelector('.search-card');
+        if (searchCard) {
+            searchCard.parentNode.insertBefore(alert, searchCard.nextSibling);
+        }
+
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.remove();
+            }
+        }, 8000);
+
+        alert.addEventListener('click', () => alert.remove());
     }
 }
-
-// ✅ LOG GENÉRICO AL INICIAR - NO SENSIBLE
-console.log('Sistema de consulta iniciado');
 
 // Inicializar sistema
 let bienestarSystem;
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Cargando interfaz...');
-    
     bienestarSystem = new BienestarAPSSystem();
-
-    const rutInput = document.getElementById('rutInput');
-    const searchButton = document.getElementById('searchButton');
-
-    if (rutInput) {
-        rutInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/[^0-9kK]/g, '');
-            if (value.length > 0) {
-                value = bienestarSystem.formatRUT(value);
-                e.target.value = value;
-            }
-        });
-
-        rutInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                bienestarSystem.searchRUT(rutInput.value);
-            }
-        });
-    }
-
-    if (searchButton) {
-        searchButton.addEventListener('click', function() {
-            const rutValue = document.getElementById('rutInput').value;
-            bienestarSystem.searchRUT(rutValue);
-        });
-    }
-
-    console.log('Sistema listo');
+    
+    setTimeout(() => {
+        document.body.classList.add('loaded');
+    }, 100);
+    
+    console.log('🏥 Sistema Bienestar APS - SharePoint Connected');
+    console.log('📊 Datos actualizados automáticamente desde SharePoint');
+    console.log('🔍 Sistema simplificado - Solo búsqueda de cupones');
 });
+
+window.bienestarSystem = bienestarSystem;
