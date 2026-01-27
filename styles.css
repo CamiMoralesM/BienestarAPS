@@ -100,7 +100,7 @@ body {
 .header-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: var(--space-lg) var(--space-xl);
+    padding: var(--space-2xl) var(--space-xl);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -116,7 +116,7 @@ body {
 }
 
 .logo-bienestar {
-    height: 140px;
+    height: 180px;
     width: auto;
     object-fit: contain;
     transition: all 0.3s ease;
@@ -1058,9 +1058,9 @@ body {
         padding: var(--space-lg) var(--space-md);
     }
     
-    /* Logo más grande en tablet */
+    /* Logo grande en tablet */
     .logo-bienestar {
-        height: 100px;
+        height: 120px;
     }
     
     .main-container {
@@ -1230,9 +1230,9 @@ body {
         padding: var(--space-md);
     }
     
-    /* Logo más grande en móvil */
+    /* Logo grande en móvil */
     .logo-bienestar {
-        height: 70px;
+        height: 90px;
     }
     
     /* Título más pequeño en móvil */
