@@ -116,7 +116,7 @@ body {
 }
 
 .logo-bienestar {
-    height: 100px;
+    height: 140px;
     width: auto;
     object-fit: contain;
     transition: all 0.3s ease;
@@ -1060,7 +1060,7 @@ body {
     
     /* Logo más grande en tablet */
     .logo-bienestar {
-        height: 80px;
+        height: 100px;
     }
     
     .main-container {
