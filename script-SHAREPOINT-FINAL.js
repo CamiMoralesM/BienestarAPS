@@ -7,10 +7,11 @@
 class BienestarAPSSystem {
     constructor() {
         this.currentWorkbook = null;
-        // SHAREPOINT - URL DE DESCARGA DIRECTA
-        this.EXCEL_URL = 'https://cmesapa-my.sharepoint.com/:x:/g/personal/alejandro_ponce_cmpuentealto_cl/IQDMU9-cU2OESYO8ETvodgptAU2lRYCtsFgLjHcMfgBQd-I?e=z8r8sT&download=1';
-        // URL alternativa si la principal no funciona
-        this.BACKUP_URL = 'https://cmesapa-my.sharepoint.com/personal/alejandro_ponce_cmpuentealto_cl/_layouts/15/download.aspx?share=IQDMU9-cU2OESYO8ETvodgptAU2lRYCtsFgLjHcMfgBQd-I';
+        // URLs ofuscadas en Base64 por seguridad
+        this.EXCEL_CONFIG = {
+            primary: 'aHR0cHM6Ly9jbWVzYXBhLW15LnNoYXJlcG9pbnQuY29tLzp4Oi9nL3BlcnNvbmFsL2FsZWphbmRyb19wb25jZV9jbXB1ZW50ZWFsdG8uY2wvSVFETVU5LWNVMk9FU1lPOEVUdm9kZ3B0QVUybFJZQ3RzRmdMakhjTWZnQlFkLUk/ZT16OHI4c1QmZG93bmxvYWQ9MQ==',
+            backup: 'aHR0cHM6Ly9jbWVzYXBhLW15LnNoYXJlcG9pbnQuY29tL3BlcnNvbmFsL2FsZWphbmRyb19wb25jZV9jbXB1ZW50ZWFsdG8uY2wvX2xheW91dHMvMTUvZG93bmxvYWQuYXNweD9zaGFyZT1JUURNVTKTV9VJjVTJPT0VTWVmU0VUdm9kZ3B0QVUybFJZQ3RzRmdMakhyTWZnQlFkLUk='
+        };
         this.init();
     }
 
@@ -24,10 +25,41 @@ class BienestarAPSSystem {
     // SHAREPOINT - CARGA AUTOMÁTICA
     // ========================================
 
+    // Método seguro para obtener URLs
+    getSecureUrl(type = 'primary') {
+        try {
+            // Decodificar URL con validación adicional
+            const encoded = this.EXCEL_CONFIG[type];
+            if (!encoded) return null;
+            
+            const decoded = atob(encoded);
+            
+            // Validación básica que sea una URL de SharePoint válida
+            if (!decoded.includes('sharepoint.com') || !decoded.includes('alejandro_ponce')) {
+                console.error('🚨 URL de configuración inválida');
+                return null;
+            }
+            
+            return decoded;
+        } catch (error) {
+            console.error('🚨 Error decodificando configuración:', error);
+            return null;
+        }
+    }
+
     async loadExcelFromSharePoint() {
         try {
             console.log('📊 Descargando datos desde SharePoint...');
-            console.log('🔗 URL principal:', this.EXCEL_URL);
+            
+            // Obtener URLs de forma segura
+            const primaryUrl = this.getSecureUrl('primary');
+            const backupUrl = this.getSecureUrl('backup');
+            
+            if (!primaryUrl) {
+                throw new Error('Configuración de conexión inválida');
+            }
+            
+            console.log('🔗 Conectando a fuente de datos segura...');
             
             // Intentar caché reciente primero (5 minutos)
             const cachedData = localStorage.getItem('gasSystemData');
@@ -41,21 +73,21 @@ class BienestarAPSSystem {
             }
 
             // Intentar descarga desde SharePoint
-            console.log('🌐 Iniciando descarga desde SharePoint...');
+            console.log('🌐 Iniciando descarga segura...');
             
-            // Método 1: URL con download=1
-            let success = await this.trySharePointDownload(this.EXCEL_URL, 'Método 1');
+            // Método 1: URL principal
+            let success = await this.trySharePointDownload(primaryUrl, 'Método 1');
             if (success) return true;
 
             // Método 2: URL alternativa de SharePoint
-            if (this.BACKUP_URL) {
+            if (backupUrl) {
                 console.log('🔄 Intentando método alternativo...');
-                success = await this.trySharePointDownload(this.BACKUP_URL, 'Método 2');
+                success = await this.trySharePointDownload(backupUrl, 'Método 2');
                 if (success) return true;
             }
 
             // Método 3: Intentar sin parámetro download
-            const urlSinDownload = this.EXCEL_URL.replace('&download=1', '');
+            const urlSinDownload = primaryUrl.replace('&download=1', '');
             console.log('🔄 Intentando sin parámetro download...');
             success = await this.trySharePointDownload(urlSinDownload, 'Método 3');
             if (success) return true;
