@@ -116,7 +116,7 @@ body {
 }
 
 .logo-bienestar {
-    height: 80px;
+    height: 100px;
     width: auto;
     object-fit: contain;
     transition: all 0.3s ease;
@@ -1058,9 +1058,9 @@ body {
         padding: var(--space-lg) var(--space-md);
     }
     
-    /* Logo responsivo en tablet */
+    /* Logo más grande en tablet */
     .logo-bienestar {
-        height: 60px;
+        height: 80px;
     }
     
     .main-container {
@@ -1230,9 +1230,9 @@ body {
         padding: var(--space-md);
     }
     
-    /* Logo más pequeño en móvil */
+    /* Logo más grande en móvil */
     .logo-bienestar {
-        height: 50px;
+        height: 70px;
     }
     
     /* Título más pequeño en móvil */
