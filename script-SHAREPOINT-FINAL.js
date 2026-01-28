@@ -617,7 +617,7 @@ class BienestarAPSSystem {
 
         <!-- COMPRAS GENERALES -->
         ${(couponInfo.comprasGenerales?.cine > 0 || couponInfo.comprasGenerales?.energy > 0 || couponInfo.comprasGenerales?.jumper > 0) ? `
-        <div class="compras-generales" style="background: linear-gradient(135deg, rgba(139, 69, 19, 0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(139, 69, 19, 0.2); box-shadow: var(--shadow-lg); grid-column: 1 / -1;">
+        <div class="compras-generales" style="background: linear-gradient(135deg, rgba(139, 69, 19, 0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(139, 69, 19, 0.2); box-shadow: var(--shadow-lg); grid-column: 1 / -1; margin-top: 3rem;">
             <div style="text-align: center; margin-bottom: 2rem;">
                 <h3 style="color: #8b4513; font-size: 1.5rem; font-weight: 800;">🛍️ COMPRAS GENERALES</h3>
                 <div class="total-compras" style="font-size: 2rem; font-weight: 700; color: #8b4513;">Total: ${(couponInfo.comprasGenerales?.cine || 0) + (couponInfo.comprasGenerales?.energy || 0) + (couponInfo.comprasGenerales?.jumper || 0)}</div>
