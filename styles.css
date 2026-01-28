@@ -1623,159 +1623,359 @@ body {
 }
 
 /* ========================================
-   COMPRAS GENERALES - ESTILOS ESPECÍFICOS MEJORADOS
+   COMPRAS GENERALES - DISEÑO RESPONSIVE PERFECTO
    ======================================== */
 
-/* Estilos base para compras generales */
-.compras-generales {
-    grid-column: 1 / -1; /* Ocupa todo el ancho disponible */
-    margin-top: 3rem !important; /* Separación superior generosa */
+/* Container principal - siempre centrado */
+.compras-generales-container {
+    grid-column: 1 / -1;
+    margin-top: 3rem;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 0 1rem;
 }
 
-/* Grid de compras generales - siempre 3 columnas centradas */
-.compras-generales-grid {
+.compras-generales-card {
+    background: linear-gradient(135deg, rgba(139, 69, 19, 0.05), var(--white));
+    border: 2px solid rgba(139, 69, 19, 0.2);
+    border-radius: 1.5rem;
+    box-shadow: var(--shadow-lg);
+    padding: 2rem;
+    width: 100%;
+    max-width: 800px;
+}
+
+/* Header responsive */
+.compras-generales-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.compras-generales-header h3 {
+    color: #8b4513;
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    font-family: var(--font-display);
+}
+
+.total-compras {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #8b4513;
+    font-family: var(--font-display);
+}
+
+/* Grid adaptativo - auto-fit para máxima flexibilidad */
+.compras-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 1.5rem;
     max-width: 600px;
     margin: 0 auto;
+    justify-items: center;
+    align-items: stretch;
 }
 
-.compras-generales .compra-item {
+/* Items cuadrados y centrados */
+.compra-item {
     text-align: center;
-    padding: 2rem 1rem;
     background: rgba(139, 69, 19, 0.1);
     border-radius: 1rem;
-    aspect-ratio: 1; /* Mantiene forma cuadrada */
+    width: 100%;
+    max-width: 180px;
+    aspect-ratio: 1; /* Garantiza forma cuadrada */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    min-height: 120px;
+    padding: 1.8rem 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 2px solid transparent;
 }
 
-/* Responsive para compras generales */
-@media (max-width: 768px) {
-    .compras-generales {
-        margin-top: 2.5rem !important; /* Espaciado reducido en tablet */
+.compra-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(139, 69, 19, 0.15);
+    border-color: rgba(139, 69, 19, 0.3);
+}
+
+.compra-numero {
+    font-size: 2.5rem !important;
+    font-weight: 700;
+    color: #8b4513;
+    margin-bottom: 0.8rem;
+    line-height: 1;
+    font-family: var(--font-display);
+}
+
+.compra-label {
+    color: #654321;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.compra-label span {
+    font-size: 1.1rem;
+}
+
+/* ========================================
+   RESPONSIVE BREAKPOINTS
+   ======================================== */
+
+/* TABLET GRANDE (1024px y menor) */
+@media (max-width: 1024px) {
+    .compras-generales-container {
+        margin-top: 2.5rem;
+        padding: 0 0.8rem;
     }
     
-    .compras-generales-grid,
-    .compras-generales > div:last-child {
-        gap: 1.2rem;
-        max-width: 500px;
+    .compras-grid {
+        max-width: 550px;
+        gap: 1.3rem;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     }
     
-    .compras-generales .compra-item {
-        padding: 1.5rem 0.8rem;
-        min-height: 100px;
-        aspect-ratio: 1;
+    .compra-item {
+        max-width: 160px;
+        padding: 1.6rem 0.9rem;
     }
     
-    .compras-generales .compra-numero {
+    .compra-numero {
         font-size: 2.2rem !important;
-        margin-bottom: 0.6rem !important;
     }
     
-    .compras-generales .compra-label {
-        font-size: 0.85rem !important;
-        gap: 0.2rem !important;
-    }
-    
-    .compras-generales .total-compras {
-        font-size: 1.8rem !important;
-    }
-    
-    .compras-generales h3 {
-        font-size: 1.4rem !important;
-        margin-bottom: 1.5rem !important;
+    .total-compras {
+        font-size: 1.8rem;
     }
 }
 
-@media (max-width: 480px) {
-    .compras-generales {
-        margin-top: 2rem !important; /* Espaciado más compacto en móvil */
-        padding: 1.5rem !important;
+/* TABLET (768px y menor) */
+@media (max-width: 768px) {
+    .compras-generales-container {
+        margin-top: 2rem;
+        padding: 0 0.6rem;
     }
     
-    /* En móvil, mantener 3 columnas pero más compactas */
-    .compras-generales-grid,
-    .compras-generales > div:last-child {
-        gap: 0.8rem;
+    .compras-generales-card {
+        padding: 1.8rem;
+        border-radius: 1.2rem;
         max-width: 100%;
-        padding: 0 0.5rem;
     }
     
-    .compras-generales .compra-item {
-        padding: 1.2rem 0.5rem;
-        min-height: 85px;
-        aspect-ratio: 1;
+    .compras-grid {
+        gap: 1.2rem;
+        max-width: 100%;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    }
+    
+    .compra-item {
+        max-width: 150px;
+        padding: 1.4rem 0.8rem;
         border-radius: 0.8rem;
     }
     
-    .compras-generales .compra-numero {
-        font-size: 1.8rem !important;
-        margin-bottom: 0.5rem !important;
-        line-height: 1 !important;
+    .compra-numero {
+        font-size: 2rem !important;
+        margin-bottom: 0.6rem;
     }
     
-    .compras-generales .compra-label {
-        font-size: 0.75rem !important;
-        line-height: 1.2 !important;
-        gap: 0.2rem !important;
+    .compra-label {
+        font-size: 0.85rem;
+        gap: 0.25rem;
     }
     
-    .compras-generales .compra-label span {
-        font-size: 0.9rem !important;
+    .compra-label span {
+        font-size: 1rem;
     }
     
-    /* Título más compacto en móvil */
-    .compras-generales h3 {
-        font-size: 1.2rem !important;
-        margin-bottom: 1.2rem !important;
+    .compras-generales-header h3 {
+        font-size: 1.4rem;
     }
     
-    .compras-generales .total-compras {
-        font-size: 1.6rem !important;
+    .total-compras {
+        font-size: 1.6rem;
     }
 }
 
-@media (max-width: 360px) {
-    .compras-generales {
-        margin-top: 1.5rem !important; /* Espaciado muy compacto en móviles pequeños */
+/* MÓVIL GRANDE (640px y menor) */
+@media (max-width: 640px) {
+    .compras-generales-container {
+        margin-top: 1.8rem;
+        padding: 0 0.5rem;
     }
     
-    /* Móviles muy pequeños - layout ultra-compacto pero manteniendo 3 columnas */
-    .compras-generales-grid,
-    .compras-generales > div:last-child {
-        gap: 0.6rem;
+    .compras-generales-card {
+        padding: 1.5rem;
+    }
+    
+    .compras-grid {
+        gap: 1rem;
+        grid-template-columns: repeat(3, 1fr); /* Forzar 3 columnas en móvil */
+        max-width: 450px;
+    }
+    
+    .compra-item {
+        max-width: none; /* Permitir que se expanda */
+        padding: 1.2rem 0.6rem;
+        min-height: 110px;
+    }
+    
+    .compra-numero {
+        font-size: 1.8rem !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    .compra-label {
+        font-size: 0.8rem;
+        gap: 0.2rem;
+        line-height: 1.2;
+    }
+    
+    .compra-label span {
+        font-size: 0.9rem;
+    }
+    
+    .compras-generales-header {
+        margin-bottom: 1.5rem;
+    }
+    
+    .compras-generales-header h3 {
+        font-size: 1.3rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    .total-compras {
+        font-size: 1.5rem;
+    }
+}
+
+/* MÓVIL PEQUEÑO (480px y menor) */
+@media (max-width: 480px) {
+    .compras-generales-container {
+        margin-top: 1.5rem;
+        padding: 0 0.3rem;
+    }
+    
+    .compras-generales-card {
+        padding: 1.2rem;
+        border-radius: 1rem;
+    }
+    
+    .compras-grid {
+        gap: 0.8rem;
+        max-width: 100%;
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .compra-item {
+        padding: 1rem 0.5rem;
+        border-radius: 0.6rem;
+        min-height: 95px;
+    }
+    
+    .compra-numero {
+        font-size: 1.6rem !important;
+        margin-bottom: 0.4rem;
+    }
+    
+    .compra-label {
+        font-size: 0.75rem;
+        flex-direction: column;
+        gap: 0.1rem;
+        line-height: 1.1;
+    }
+    
+    .compra-label span {
+        font-size: 0.85rem;
+        margin-bottom: 0.1rem;
+    }
+    
+    .compras-generales-header h3 {
+        font-size: 1.2rem;
+    }
+    
+    .total-compras {
+        font-size: 1.4rem;
+    }
+    
+    .compras-generales-header {
+        margin-bottom: 1.2rem;
+    }
+}
+
+/* MÓVIL MUY PEQUEÑO (360px y menor) */
+@media (max-width: 360px) {
+    .compras-generales-container {
+        margin-top: 1.2rem;
         padding: 0 0.2rem;
     }
     
-    .compras-generales .compra-item {
-        padding: 1rem 0.4rem;
-        min-height: 75px;
-        border-radius: 0.6rem;
+    .compras-generales-card {
+        padding: 1rem;
     }
     
-    .compras-generales .compra-numero {
-        font-size: 1.6rem !important;
-        margin-bottom: 0.4rem !important;
+    .compras-grid {
+        gap: 0.6rem;
+        grid-template-columns: repeat(3, 1fr);
     }
     
-    .compras-generales .compra-label {
-        font-size: 0.7rem !important;
+    .compra-item {
+        padding: 0.8rem 0.4rem;
+        min-height: 85px;
+        border-radius: 0.5rem;
     }
     
-    .compras-generales .compra-label span {
-        font-size: 0.8rem !important;
-    }
-    
-    .compras-generales h3 {
-        font-size: 1.1rem !important;
-    }
-    
-    .compras-generales .total-compras {
+    .compra-numero {
         font-size: 1.4rem !important;
+        margin-bottom: 0.3rem;
+    }
+    
+    .compra-label {
+        font-size: 0.7rem;
+    }
+    
+    .compra-label span {
+        font-size: 0.8rem;
+    }
+    
+    .compras-generales-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    .total-compras {
+        font-size: 1.3rem;
+    }
+}
+
+/* MEJORAS TÁCTILES PARA DISPOSITIVOS MÓVILES */
+@media (hover: none) and (pointer: coarse) {
+    .compra-item:hover {
+        transform: none;
+        box-shadow: 0 4px 12px rgba(139, 69, 19, 0.1);
+    }
+    
+    .compra-item:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+}
+
+/* ACCESIBILIDAD - REDUCIR MOTION */
+@media (prefers-reduced-motion: reduce) {
+    .compra-item {
+        transition: none;
+    }
+    
+    .compra-item:hover,
+    .compra-item:active {
+        transform: none;
     }
 }
