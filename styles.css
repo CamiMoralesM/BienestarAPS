@@ -1,15 +1,23 @@
+/* ========================================
+   BIENESTAR APS - SISTEMA DE CUPONES DE GAS
+   CSS v4.0 SÚPER RESPONSIVO PARA MÓVILES
+   ======================================== */
 
+/* Variables CSS - Tema de Salud Armónico */
 :root {
-    --health-primary: #10b981;
-    --health-secondary: #3b82f6;
-    --health-accent: #06b6d4;
-    --health-success: #22c55e;
-    --health-warning: #f59e0b;
-    --health-error: #ef4444;
+    /* Colores principales de salud */
+    --health-primary: #10b981; /* Verde salud principal */
+    --health-secondary: #3b82f6; /* Azul confianza */
+    --health-accent: #06b6d4; /* Cyan suave */
+    --health-success: #22c55e; /* Verde éxito */
+    --health-warning: #f59e0b; /* Amarillo cálido */
+    --health-error: #ef4444; /* Rojo suave */
     
-    --gas-lipigas: #0ea5e9;
-    --gas-abastible: #f97316;
+    /* Colores de gas - más suaves */
+    --gas-lipigas: #0ea5e9; /* Azul gas suave */
+    --gas-abastible: #f97316; /* Naranja suave */
     
+    /* Neutros armónicos */
     --white: #ffffff;
     --gray-25: #fcfcfd;
     --gray-50: #f8fafc;
@@ -23,17 +31,18 @@
     --gray-800: #1e293b;
     --gray-900: #0f172a;
     
+    /* Tipografía */
     --font-display: 'Nunito', sans-serif;
     --font-body: 'Inter', sans-serif;
     
-
+    /* Sombras suaves */
     --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     
-
+    /* Espaciado - OPTIMIZADO PARA DESKTOP */
     --space-xs: 0.5rem;
     --space-sm: 0.75rem;
     --space-md: 1rem;
@@ -42,7 +51,7 @@
     --space-2xl: 2.5rem;
     --space-3xl: 3rem;
     
-
+    /* Border radius suave */
     --radius-xs: 0.25rem;
     --radius-sm: 0.375rem;
     --radius-md: 0.5rem;
@@ -50,6 +59,10 @@
     --radius-xl: 1rem;
     --radius-2xl: 1.5rem;
 }
+
+/* ========================================
+   RESET Y ESTILOS BASE
+   ======================================== */
 
 * {
     margin: 0;
@@ -70,6 +83,9 @@ body {
     overflow-x: hidden;
 }
 
+/* ========================================
+   HEADER CON LOGO
+   ======================================== */
 
 .main-header {
     background: rgba(255, 255, 255, 0.95);
@@ -130,6 +146,9 @@ body {
     font-weight: 600;
 }
 
+/* ========================================
+   BOTONES MEJORADOS Y TOUCH-FRIENDLY
+   ======================================== */
 
 .admin-btn {
     background: linear-gradient(135deg, var(--health-primary), var(--health-secondary));
@@ -148,7 +167,7 @@ body {
     box-shadow: var(--shadow-md);
     position: relative;
     overflow: hidden;
-    min-height: 44px;
+    min-height: 44px; /* Mínimo para touch */
 }
 
 .admin-btn::before {
@@ -192,7 +211,7 @@ body {
     box-shadow: var(--shadow-lg);
     position: relative;
     overflow: hidden;
-    min-height: 52px;
+    min-height: 52px; /* Touch-friendly */
 }
 
 .search-btn::before {
@@ -232,7 +251,7 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: var(--shadow-md);
-    min-height: 48px;
+    min-height: 48px; /* Touch-friendly */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -300,6 +319,9 @@ body {
     box-shadow: var(--shadow-md);
 }
 
+/* ========================================
+   CONTENEDOR PRINCIPAL
+   ======================================== */
 
 .main-container {
     max-width: 1200px;
@@ -310,6 +332,9 @@ body {
     gap: var(--space-2xl);
 }
 
+/* ========================================
+   CARDS MEJORADAS
+   ======================================== */
 
 .search-card,
 .results-card,
@@ -353,6 +378,9 @@ body {
     background: linear-gradient(90deg, var(--health-secondary), var(--health-accent));
 }
 
+/* ========================================
+   TÍTULOS
+   ======================================== */
 
 .section-title,
 .results-title,
@@ -373,6 +401,9 @@ body {
     margin-bottom: var(--space-lg);
 }
 
+/* ========================================
+   FORMULARIOS MEJORADOS Y TOUCH-FRIENDLY
+   ======================================== */
 
 .search-form {
     display: flex;
@@ -413,7 +444,7 @@ body {
     transition: all 0.3s ease;
     background: var(--gray-50);
     font-weight: 500;
-    min-height: 48px; 
+    min-height: 48px; /* Touch-friendly */
 }
 
 .rut-input {
@@ -453,6 +484,10 @@ body {
     flex: 1;
     min-width: 140px;
 }
+
+/* ========================================
+   INSTRUCCIONES
+   ======================================== */
 
 .instructions-grid {
     display: grid;
@@ -505,6 +540,10 @@ body {
     font-size: 0.9rem;
     line-height: 1.5;
 }
+
+/* ========================================
+   MODALES CON SCROLL MEJORADO Y MÓVIL
+   ======================================== */
 
 .modal {
     display: none;
@@ -586,7 +625,7 @@ body {
     border-radius: 50%;
     transition: all 0.3s ease;
     font-weight: bold;
-    min-width: 44px;
+    min-width: 44px; /* Touch target */
     min-height: 44px;
 }
 
@@ -601,6 +640,8 @@ body {
     flex: 1;
     max-height: calc(90vh - 100px);
 }
+
+/* SCROLL CUSTOMIZADO PARA WEBKIT */
 .modal-body::-webkit-scrollbar {
     width: 8px;
 }
@@ -680,6 +721,9 @@ body {
     line-height: 1.6;
 }
 
+/* ========================================
+   SUBIDA DE ARCHIVOS
+   ======================================== */
 
 .file-upload-section {
     display: flex;
@@ -820,6 +864,9 @@ body {
     color: var(--gray-800);
 }
 
+/* ========================================
+   RESULTADOS
+   ======================================== */
 
 .results-section {
     animation: slideUp 0.5s ease-out;
@@ -883,6 +930,9 @@ body {
     text-align: right;
 }
 
+/* ========================================
+   LOADING Y ALERTAS
+   ======================================== */
 
 .loading-overlay {
     position: fixed;
@@ -964,6 +1014,11 @@ body {
     color: var(--health-warning);
 }
 
+/* ========================================
+   RESPONSIVE DESIGN SÚPER MEJORADO PARA MÓVILES
+   ======================================== */
+
+/* TABLET GRANDE */
 @media (max-width: 1024px) {
     .modal-content {
         width: 95%;
@@ -986,8 +1041,10 @@ body {
     }
 }
 
+/* TABLET Y MÓVIL HORIZONTAL */
 @media (max-width: 768px) {
     :root {
+        /* Ajustar espaciado para móviles */
         --space-xs: 0.4rem;
         --space-sm: 0.6rem;
         --space-md: 0.8rem;
@@ -1001,6 +1058,7 @@ body {
         padding: var(--space-lg) var(--space-md);
     }
     
+    /* Logo responsivo en tablet */
     .logo-bienestar {
         height: 60px;
     }
@@ -1027,6 +1085,7 @@ body {
         line-height: 1.3;
     }
     
+    /* BOTONES MÁS GRANDES PARA MÓVILES */
     .admin-btn {
         padding: var(--space-lg) var(--space-xl);
         font-size: 1rem;
@@ -1042,6 +1101,7 @@ body {
         justify-content: center;
     }
     
+    /* INPUTS TOUCH-FRIENDLY */
     .rut-input {
         padding: var(--space-xl);
         font-size: 1.2rem;
@@ -1070,6 +1130,7 @@ body {
         font-size: 1.2rem;
     }
     
+    /* MODALES MÓVIL */
     .modal-content {
         width: 95%;
         margin: 2% auto;
@@ -1096,6 +1157,7 @@ body {
         font-size: 1.6rem;
     }
     
+    /* FORMULARIOS MÓVIL */
     .form-actions {
         flex-direction: column;
         gap: var(--space-md);
@@ -1115,6 +1177,7 @@ body {
         padding: var(--space-lg);
     }
     
+    /* RESULTADOS MÓVIL */
     .user-details {
         grid-template-columns: 1fr;
         gap: var(--space-md);
@@ -1127,6 +1190,7 @@ body {
         gap: var(--space-xs);
     }
     
+    /* ARCHIVOS MÓVIL */
     .file-upload-section {
         padding: var(--space-xl);
     }
@@ -1150,8 +1214,10 @@ body {
     }
 }
 
+/* MÓVIL VERTICAL */
 @media (max-width: 480px) {
     :root {
+        /* Espaciado aún más compacto */
         --space-xs: 0.3rem;
         --space-sm: 0.5rem;
         --space-md: 0.7rem;
@@ -1164,11 +1230,13 @@ body {
     .header-content {
         padding: var(--space-md);
     }
-
+    
+    /* Logo más pequeño en móvil */
     .logo-bienestar {
         height: 50px;
     }
     
+    /* Título más pequeño en móvil */
     .main-title {
         font-size: 1.6rem;
         margin-bottom: var(--space-sm);
@@ -1181,6 +1249,7 @@ body {
         line-height: 1.3;
     }
     
+    /* Hacer que logo y título se pongan en columna en pantallas muy pequeñas */
     .logo-section > div {
         flex-direction: column !important;
         gap: 1rem !important;
@@ -1200,6 +1269,7 @@ body {
         margin-bottom: var(--space-lg);
     }
     
+    /* BOTONES SUPER TOUCH-FRIENDLY */
     .search-btn {
         width: 100%;
         justify-content: center;
@@ -1215,6 +1285,7 @@ body {
         font-size: 0.95rem;
     }
     
+    /* INPUTS GRANDES PARA DEDOS */
     .rut-input {
         font-size: 1.3rem;
         min-height: 60px;
@@ -1230,6 +1301,7 @@ body {
         border-width: 3px;
     }
     
+    /* INSTRUCCIONES COMPACTAS */
     .instruction-item {
         padding: var(--space-lg);
         flex-direction: column;
@@ -1253,7 +1325,8 @@ body {
         font-size: 0.9rem;
         line-height: 1.6;
     }
-
+    
+    /* MODAL PANTALLA COMPLETA EN MÓVIL */
     .modal-content {
         width: 100%;
         height: 100vh;
@@ -1285,7 +1358,8 @@ body {
         height: 48px;
         font-size: 1.8rem;
     }
-
+    
+    /* FORMULARIOS STACK COMPLETO */
     .login-form {
         gap: var(--space-lg);
     }
@@ -1295,7 +1369,8 @@ body {
         min-height: 52px;
         font-size: 1rem;
     }
-
+    
+    /* ARCHIVOS MÓVIL PEQUEÑO */
     .file-upload-section {
         padding: var(--space-lg);
         margin: 0 -0.25rem;
@@ -1316,14 +1391,16 @@ body {
         background: var(--gray-50);
         margin-bottom: var(--space-sm);
     }
-
+    
+    /* ALERTAS MÓVIL */
     .alert {
         padding: var(--space-lg);
         margin: var(--space-md) -0.25rem;
         font-size: 0.9rem;
         border-width: 2px;
     }
-
+    
+    /* LOADING MÓVIL */
     .loading-spinner {
         padding: var(--space-2xl);
         margin: var(--space-md);
@@ -1335,7 +1412,8 @@ body {
         height: 44px;
         border-width: 4px;
     }
-
+    
+    /* RESULTADOS MÓVIL */
     .user-info {
         padding: var(--space-lg);
         margin: 0 -0.25rem var(--space-lg);
@@ -1355,7 +1433,8 @@ body {
     .detail-value {
         font-size: 0.9rem;
     }
-
+    
+    /* ADMIN INFO MÓVIL */
     .admin-info {
         padding: var(--space-lg);
         margin: var(--space-md) -0.25rem;
@@ -1365,7 +1444,8 @@ body {
         padding: var(--space-md) 0;
         font-size: 0.85rem;
     }
- 
+    
+    /* SECTION DESCRIPTIONS */
     .section-description {
         padding: var(--space-lg);
         font-size: 0.9rem;
@@ -1373,6 +1453,7 @@ body {
     }
 }
 
+/* MÓVIL MUY PEQUEÑO */
 @media (max-width: 360px) {
     .main-title {
         font-size: 1.4rem;
@@ -1398,6 +1479,7 @@ body {
     }
 }
 
+/* ORIENTACIÓN LANDSCAPE EN MÓVIL */
 @media (max-height: 600px) and (orientation: landscape) {
     .modal-content {
         height: 95vh;
@@ -1420,8 +1502,9 @@ body {
     }
 }
 
+/* MEJORAS TOUCH ESPECÍFICAS */
 @media (hover: none) and (pointer: coarse) {
-
+    /* Detectar dispositivos táctiles */
     
     .admin-btn:hover,
     .search-btn:hover,
@@ -1447,7 +1530,8 @@ body {
     .file-label:hover {
         transform: none;
     }
-
+    
+    /* Mejorar el tap target size */
     .close-btn {
         min-width: 48px;
         min-height: 48px;
@@ -1459,6 +1543,7 @@ body {
     }
 }
 
+/* ACCESIBILIDAD MÓVIL */
 @media (prefers-reduced-motion: reduce) {
     .modal-content,
     .results-section,
@@ -1474,6 +1559,9 @@ body {
     }
 }
 
+/* ========================================
+   UTILIDADES
+   ======================================== */
 
 .hidden {
     display: none !important;
@@ -1507,6 +1595,10 @@ body {
     color: var(--gas-abastible);
 }
 
+/* ========================================
+   SCROLL PERSONALIZADO GLOBAL
+   ======================================== */
+
 ::-webkit-scrollbar {
     width: 10px;
 }
@@ -1530,6 +1622,11 @@ body {
     }
 }
 
+/* ========================================
+   COMPRAS GENERALES - DISEÑO RESPONSIVE PERFECTO
+   ======================================== */
+
+/* Container principal - siempre centrado */
 .compras-generales-container {
     grid-column: 1 / -1;
     margin-top: 3rem;
@@ -1549,6 +1646,7 @@ body {
     max-width: 800px;
 }
 
+/* Header responsive */
 .compras-generales-header {
     text-align: center;
     margin-bottom: 2rem;
@@ -1569,6 +1667,7 @@ body {
     font-family: var(--font-display);
 }
 
+/* Grid adaptativo - auto-fit para máxima flexibilidad */
 .compras-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -1579,13 +1678,14 @@ body {
     align-items: stretch;
 }
 
+/* Items cuadrados y centrados */
 .compra-item {
     text-align: center;
     background: rgba(139, 69, 19, 0.1);
     border-radius: 1rem;
     width: 100%;
     max-width: 180px;
-    aspect-ratio: 1; 
+    aspect-ratio: 1; /* Garantiza forma cuadrada */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -1626,6 +1726,11 @@ body {
     font-size: 1.1rem;
 }
 
+/* ========================================
+   RESPONSIVE BREAKPOINTS
+   ======================================== */
+
+/* TABLET GRANDE (1024px y menor) */
 @media (max-width: 1024px) {
     .compras-generales-container {
         margin-top: 2.5rem;
@@ -1652,6 +1757,7 @@ body {
     }
 }
 
+/* TABLET (768px y menor) */
 @media (max-width: 768px) {
     .compras-generales-container {
         margin-top: 2rem;
@@ -1699,6 +1805,7 @@ body {
     }
 }
 
+/* MÓVIL GRANDE (640px y menor) */
 @media (max-width: 640px) {
     .compras-generales-container {
         margin-top: 1.8rem;
@@ -1711,12 +1818,12 @@ body {
     
     .compras-grid {
         gap: 1rem;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, 1fr); /* Forzar 3 columnas en móvil */
         max-width: 450px;
     }
     
     .compra-item {
-        max-width: none; 
+        max-width: none; /* Permitir que se expanda */
         padding: 1.2rem 0.6rem;
         min-height: 110px;
     }
@@ -1750,6 +1857,7 @@ body {
     }
 }
 
+/* MÓVIL PEQUEÑO (480px y menor) */
 @media (max-width: 480px) {
     .compras-generales-container {
         margin-top: 1.5rem;
@@ -1803,6 +1911,7 @@ body {
     }
 }
 
+/* MÓVIL MUY PEQUEÑO (360px y menor) */
 @media (max-width: 360px) {
     .compras-generales-container {
         margin-top: 1.2rem;
@@ -1846,6 +1955,7 @@ body {
     }
 }
 
+/* MEJORAS TÁCTILES PARA DISPOSITIVOS MÓVILES */
 @media (hover: none) and (pointer: coarse) {
     .compra-item:hover {
         transform: none;
@@ -1858,6 +1968,7 @@ body {
     }
 }
 
+/* ACCESIBILIDAD - REDUCIR MOTION */
 @media (prefers-reduced-motion: reduce) {
     .compra-item {
         transition: none;
