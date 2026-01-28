@@ -1615,7 +1615,7 @@ body {
 }
 
 /* ========================================
-   COMPRAS GENERALES - ESTILOS ESPECÍFICOS
+   COMPRAS GENERALES - ESTILOS ESPECÍFICOS MEJORADOS
    ======================================== */
 
 /* Estilos base para compras generales */
@@ -1623,79 +1623,143 @@ body {
     grid-column: 1 / -1; /* Ocupa todo el ancho disponible */
 }
 
+/* Grid de compras generales - siempre 3 columnas centradas */
+.compras-generales-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.compras-generales .compra-item {
+    text-align: center;
+    padding: 2rem 1rem;
+    background: rgba(139, 69, 19, 0.1);
+    border-radius: 1rem;
+    aspect-ratio: 1; /* Mantiene forma cuadrada */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 120px;
+}
+
 /* Responsive para compras generales */
 @media (max-width: 768px) {
-    /* En tablet, mantener 3 columnas pero más compactas */
-    .compras-generales .compra-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.8rem;
+    .compras-generales-grid,
+    .compras-generales > div:last-child {
+        gap: 1.2rem;
+        max-width: 500px;
     }
     
     .compras-generales .compra-item {
-        padding: 1.2rem 0.8rem;
-        min-width: auto;
+        padding: 1.5rem 0.8rem;
+        min-height: 100px;
+        aspect-ratio: 1;
     }
     
     .compras-generales .compra-numero {
-        font-size: 1.6rem !important;
+        font-size: 2.2rem !important;
+        margin-bottom: 0.6rem !important;
     }
     
     .compras-generales .compra-label {
-        font-size: 0.8rem !important;
-        line-height: 1.2;
+        font-size: 0.85rem !important;
+        gap: 0.2rem !important;
+    }
+    
+    .compras-generales .total-compras {
+        font-size: 1.8rem !important;
+    }
+    
+    .compras-generales h3 {
+        font-size: 1.4rem !important;
+        margin-bottom: 1.5rem !important;
     }
 }
 
 @media (max-width: 480px) {
-    /* En móvil, cambiar a disposición vertical más compacta */
-    .compras-generales .compra-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.6rem;
-        justify-items: center;
+    /* En móvil, mantener 3 columnas pero más compactas */
+    .compras-generales-grid,
+    .compras-generales > div:last-child {
+        gap: 0.8rem;
+        max-width: 100%;
+        padding: 0 0.5rem;
     }
     
     .compras-generales .compra-item {
-        padding: 1rem 0.5rem;
-        min-width: 90px;
-        max-width: 110px;
+        padding: 1.2rem 0.5rem;
+        min-height: 85px;
+        aspect-ratio: 1;
+        border-radius: 0.8rem;
     }
     
     .compras-generales .compra-numero {
-        font-size: 1.4rem !important;
-        margin-bottom: 0.3rem;
+        font-size: 1.8rem !important;
+        margin-bottom: 0.5rem !important;
+        line-height: 1 !important;
     }
     
     .compras-generales .compra-label {
-        font-size: 0.7rem !important;
-        line-height: 1.1;
+        font-size: 0.75rem !important;
+        line-height: 1.2 !important;
+        gap: 0.2rem !important;
+    }
+    
+    .compras-generales .compra-label span {
+        font-size: 0.9rem !important;
     }
     
     /* Título más compacto en móvil */
     .compras-generales h3 {
-        font-size: 1.3rem !important;
-        margin-bottom: 1rem !important;
+        font-size: 1.2rem !important;
+        margin-bottom: 1.2rem !important;
     }
     
     .compras-generales .total-compras {
         font-size: 1.6rem !important;
     }
+    
+    /* Container principal más compacto */
+    .compras-generales {
+        padding: 1.5rem !important;
+        margin-top: 1.5rem !important;
+    }
 }
 
 @media (max-width: 360px) {
-    /* Móviles muy pequeños - layout más compacto */
+    /* Móviles muy pequeños - layout ultra-compacto pero manteniendo 3 columnas */
+    .compras-generales-grid,
+    .compras-generales > div:last-child {
+        gap: 0.6rem;
+        padding: 0 0.2rem;
+    }
+    
     .compras-generales .compra-item {
-        padding: 0.8rem 0.4rem;
-        min-width: 80px;
-        max-width: 95px;
+        padding: 1rem 0.4rem;
+        min-height: 75px;
+        border-radius: 0.6rem;
     }
     
     .compras-generales .compra-numero {
-        font-size: 1.3rem !important;
+        font-size: 1.6rem !important;
+        margin-bottom: 0.4rem !important;
     }
     
     .compras-generales .compra-label {
-        font-size: 0.65rem !important;
+        font-size: 0.7rem !important;
+    }
+    
+    .compras-generales .compra-label span {
+        font-size: 0.8rem !important;
+    }
+    
+    .compras-generales h3 {
+        font-size: 1.1rem !important;
+    }
+    
+    .compras-generales .total-compras {
+        font-size: 1.4rem !important;
     }
 }
