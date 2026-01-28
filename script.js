@@ -987,29 +987,48 @@ class BienestarAPSSystem {
     // EVENTOS Y UI
     // ========================================
 
-    bindEvents() {
-        // Búsqueda de cupones
-        document.getElementById('searchBtn').addEventListener('click', () => this.searchCoupons());
-        document.getElementById('rutInput').addEventListener('keypress', (e) => {
+   bindEvents() {
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => this.searchCoupons());
+    }
+
+    const rutInput = document.getElementById('rutInput');
+    if (rutInput) {
+        rutInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.searchCoupons();
         });
-        document.getElementById('rutInput').addEventListener('input', (e) => this.formatRUT(e));
+        rutInput.addEventListener('input', (e) => this.formatRUT(e));
+    }
 
-        // Panel administrativo
-        document.getElementById('adminBtn').addEventListener('click', () => this.openAdminModal());
+    const adminBtn = document.getElementById('adminBtn');
+    if (adminBtn) {
+        adminBtn.addEventListener('click', () => this.openAdminModal());
+    }
 
-        // Autenticación
-        document.getElementById('loginBtn').addEventListener('click', () => this.handleLogin());
-        document.getElementById('logoutBtn').addEventListener('click', () => this.handleLogout());
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => this.handleLogin());
+    }
 
-        // Información de Google Sheets (reemplaza upload)
-        document.getElementById('uploadBtn').addEventListener('click', () => this.showGoogleSheetsInfo());
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => this.handleLogout());
+    }
 
-        // Cerrar modales
-        document.querySelector('.close-btn').addEventListener('click', () => this.closeAdminModal());
-        document.getElementById('adminLoginModal').addEventListener('click', (e) => {
+    const uploadBtn = document.getElementById('uploadBtn');
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', () => this.showGoogleSheetsInfo());
+    }
+
+    const adminModal = document.getElementById('adminLoginModal');
+    if (adminModal) {
+        adminModal.addEventListener('click', (e) => {
             if (e.target.id === 'adminLoginModal') this.closeAdminModal();
         });
+    }
+}
+
 
         // Refrescar datos manualmente
         const refreshBtn = document.getElementById('refreshBtn');
