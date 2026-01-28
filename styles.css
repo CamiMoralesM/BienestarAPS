@@ -1063,153 +1063,10 @@ body {
         height: 60px;
     }
     
-    /* Títulos responsive para tablet */
-    .main-title {
-        font-size: 1.9rem;
-        line-height: 1.2;
-        margin-bottom: 0.8rem;
-    }
-    
-    .subtitle {
-        font-size: 0.95rem;
-        line-height: 1.4;
-        margin-top: 0.2rem;
-    }
-    
     .main-container {
         padding: var(--space-xl) var(--space-md);
         gap: var(--space-xl);
     }
-    
-    /* BOTONES MÁS GRANDES PARA MÓVILES */
-    .admin-btn {
-        padding: var(--space-lg) var(--space-xl);
-        font-size: 1rem;
-        min-height: 48px;
-        justify-content: center;
-    }
-    
-    .search-btn {
-        padding: var(--space-xl) var(--space-2xl);
-        font-size: 1.2rem;
-        min-height: 56px;
-        width: 100%;
-        justify-content: center;
-    }
-    
-    /* INPUTS TOUCH-FRIENDLY */
-    .rut-input {
-        padding: var(--space-xl);
-        font-size: 1.2rem;
-        min-height: 56px;
-        text-align: center;
-    }
-    
-    .login-form input {
-        padding: var(--space-xl);
-        font-size: 1.1rem;
-        min-height: 52px;
-    }
-    
-    .instructions-grid {
-        grid-template-columns: 1fr;
-        gap: var(--space-lg);
-    }
-    
-    .instruction-item {
-        padding: var(--space-xl);
-    }
-    
-    .instruction-number {
-        width: 48px;
-        height: 48px;
-        font-size: 1.2rem;
-    }
-    
-    /* MODALES MÓVIL */
-    .modal-content {
-        width: 95%;
-        margin: 2% auto;
-        max-height: 94vh;
-        border-radius: var(--radius-xl);
-    }
-    
-    .modal-body {
-        padding: var(--space-lg);
-        max-height: calc(94vh - 90px);
-    }
-    
-    .modal-header {
-        padding: var(--space-lg) var(--space-xl);
-    }
-    
-    .modal-header h3 {
-        font-size: 1.3rem;
-    }
-    
-    .close-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 1.6rem;
-    }
-    
-    /* FORMULARIOS MÓVIL */
-    .form-actions {
-        flex-direction: column;
-        gap: var(--space-md);
-    }
-    
-    .admin-actions {
-        flex-direction: column;
-        gap: var(--space-md);
-    }
-    
-    .login-btn,
-    .logout-btn,
-    .change-password-btn,
-    .upload-btn {
-        min-height: 52px;
-        font-size: 1rem;
-        padding: var(--space-lg);
-    }
-    
-    /* RESULTADOS MÓVIL */
-    .user-details {
-        grid-template-columns: 1fr;
-        gap: var(--space-md);
-    }
-    
-    .user-detail {
-        padding: var(--space-lg);
-        flex-direction: column;
-        text-align: center;
-        gap: var(--space-xs);
-    }
-    
-    /* ARCHIVOS MÓVIL */
-    .file-upload-section {
-        padding: var(--space-xl);
-    }
-    
-    .file-label {
-        padding: var(--space-2xl);
-        min-height: 120px;
-    }
-    
-    .file-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--space-md);
-        padding: var(--space-lg);
-    }
-    
-    .delete-file-btn {
-        align-self: flex-end;
-        min-height: 44px;
-        padding: var(--space-sm) var(--space-lg);
-    }
-}
-
     
     .search-card,
     .results-card,
@@ -1218,6 +1075,16 @@ body {
         border-radius: var(--radius-xl);
     }
     
+    .main-title {
+        font-size: 1.8rem;
+        line-height: 1.3;
+    }
+    
+    .subtitle {
+        font-size: 0.9rem;
+        line-height: 1.3;
+    }
+    
     /* BOTONES MÁS GRANDES PARA MÓVILES */
     .admin-btn {
         padding: var(--space-lg) var(--space-xl);
@@ -1347,10 +1214,10 @@ body {
     }
 }
 
-/* MÓVIL VERTICAL - OPTIMIZADO PARA TELÉFONOS */
+/* MÓVIL VERTICAL */
 @media (max-width: 480px) {
     :root {
-        /* Espaciado más compacto para móviles */
+        /* Espaciado aún más compacto */
         --space-xs: 0.3rem;
         --space-sm: 0.5rem;
         --space-md: 0.7rem;
@@ -1360,52 +1227,39 @@ body {
         --space-3xl: 2rem;
     }
     
-    /* HEADER OPTIMIZADO PARA TELÉFONO */
     .header-content {
-        padding: var(--space-md) var(--space-sm);
-        gap: 0.8rem;
+        padding: var(--space-md);
     }
     
     /* Logo más pequeño en móvil */
     .logo-bienestar {
-        height: 45px;
-        flex-shrink: 0;
+        height: 50px;
     }
     
-    /* TÍTULOS OPTIMIZADOS PARA TELÉFONO */
+    /* Título más pequeño en móvil */
     .main-title {
-        font-size: 1.4rem;
-        margin-bottom: 0.4rem;
+        font-size: 1.6rem;
+        margin-bottom: var(--space-sm);
         text-align: center;
-        line-height: 1.2;
-        font-weight: 700;
     }
     
     .subtitle {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         text-align: center;
         line-height: 1.3;
-        margin-top: 0.15rem;
     }
     
-    .subtitle-highlight {
-        font-weight: 700;
-        color: var(--health-primary);
-    }
-    
-    /* Layout columna en móvil */
+    /* Hacer que logo y título se pongan en columna en pantallas muy pequeñas */
     .logo-section > div {
         flex-direction: column !important;
-        gap: 0.8rem !important;
+        gap: 1rem !important;
         text-align: center;
-        align-items: center;
     }
     
     .logo-section > div > div {
         display: flex;
         flex-direction: column;
-        gap: 0.2rem;
-        width: 100%;
+        gap: 0.3rem;
     }
     
     .section-title,
@@ -1599,57 +1453,29 @@ body {
     }
 }
 
-}
-
-/* MÓVIL MUY PEQUEÑO - TELÉFONOS COMPACTOS */
+/* MÓVIL MUY PEQUEÑO */
 @media (max-width: 360px) {
-    /* HEADER ULTRA COMPACTO */
-    .header-content {
-        padding: 0.6rem 0.4rem;
-        gap: 0.6rem;
-    }
-    
-    /* Logo aún más pequeño */
-    .logo-bienestar {
-        height: 40px;
-    }
-    
-    /* TÍTULOS ULTRA COMPACTOS */
     .main-title {
-        font-size: 1.25rem;
-        margin-bottom: 0.3rem;
-        font-weight: 800;
-        line-height: 1.1;
+        font-size: 1.4rem;
     }
     
-    .subtitle {
-        font-size: 0.75rem;
-        line-height: 1.2;
-        margin-top: 0.1rem;
+    .search-btn {
+        font-size: 1rem;
+        padding: var(--space-lg);
     }
     
-    /* Texto más corto en móviles muy pequeños */
-    .subtitle:first-of-type {
-        /* Acortar el primer subtítulo */
+    .rut-input {
+        font-size: 1.2rem;
     }
     
-    .subtitle:last-of-type {
-        /* Mantener el segundo subtítulo */
-        font-weight: 600;
+    .modal-header h3 {
+        font-size: 1.1rem;
     }
     
-    .subtitle-highlight {
-        font-weight: 800;
-        font-size: 0.8rem;
-    }
-    
-    /* Layout más compacto */
-    .logo-section > div {
-        gap: 0.6rem !important;
-    }
-    
-    .logo-section > div > div {
-        gap: 0.15rem;
+    .instruction-number {
+        width: 48px;
+        height: 48px;
+        font-size: 1.2rem;
     }
 }
 
@@ -1951,119 +1777,5 @@ body {
     
     .compras-generales .total-compras {
         font-size: 1.4rem !important;
-    }
-}
-
-/* ORIENTACIÓN HORIZONTAL EN MÓVILES - HEADER COMPACTO */
-@media (max-height: 600px) and (orientation: landscape) and (max-width: 900px) {
-    .header-content {
-        padding: 0.4rem 0.8rem;
-        gap: 0.6rem;
-    }
-    
-    .logo-bienestar {
-        height: 35px;
-    }
-    
-    .main-title {
-        font-size: 1.1rem;
-        margin-bottom: 0.2rem;
-        line-height: 1.1;
-    }
-    
-    .subtitle {
-        font-size: 0.7rem;
-        line-height: 1.1;
-        margin-top: 0.1rem;
-    }
-    
-    /* En landscape, mantener layout horizontal */
-    .logo-section > div {
-        flex-direction: row !important;
-        gap: 1rem !important;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .logo-section > div > div {
-        text-align: left;
-        gap: 0.1rem;
-    }
-    
-    .main-container {
-        padding-top: 1rem;
-    }
-}
-
-/* MEJORAS ESPECÍFICAS PARA TELÉFONOS TOUCH */
-@media (hover: none) and (pointer: coarse) and (max-width: 480px) {
-    /* Asegurar que todos los elementos táctiles sean accesibles */
-    .header-content {
-        min-height: 60px;
-        align-items: center;
-    }
-    
-    .logo-bienestar {
-        min-height: 40px;
-        max-height: 50px;
-        object-fit: contain;
-    }
-    
-    /* Texto legible sin necesidad de zoom */
-    .main-title {
-        font-size: max(1.3rem, 4vw);
-        max-width: 100%;
-        word-wrap: break-word;
-    }
-    
-    .subtitle {
-        font-size: max(0.75rem, 3vw);
-        max-width: 100%;
-        word-wrap: break-word;
-    }
-    
-    /* Control de texto largo vs corto */
-    .text-full {
-        display: inline;
-    }
-    
-    .text-short {
-        display: none;
-    }
-    
-    /* Evitar que el texto se corte */
-    .logo-section > div > div {
-        overflow: visible;
-        white-space: normal;
-    }
-}
-
-/* TEXTO CORTO PARA MÓVILES MUY PEQUEÑOS */
-@media (max-width: 320px) {
-    .text-full {
-        display: none;
-    }
-    
-    .text-short {
-        display: inline;
-        font-size: 0.7rem;
-        line-height: 1.2;
-    }
-    
-    .main-title {
-        font-size: 1.15rem;
-        font-weight: 800;
-    }
-    
-    .subtitle {
-        font-size: 0.7rem;
-    }
-    
-    .logo-bienestar {
-        height: 35px;
-    }
-    
-    .header-content {
-        padding: 0.5rem 0.3rem;
     }
 }
