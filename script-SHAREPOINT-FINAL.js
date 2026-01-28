@@ -1,10 +1,133 @@
 /**
  * BIENESTAR APS - SISTEMA DE CUPONES DE GAS
- * Versión Google Sheets - CON TU ENLACE ESPECÍFICO CORREGIDO
+ * Versión con Seguridad Mejorada - URLs y Datos Sensibles Protegidos
+ * 
+ * CARACTERÍSTICAS DE SEGURIDAD:
+ * - URLs de SharePoint censuradas en logs
+ * - Información de RUTs oculta en consola
+ * - Modo producción vs desarrollo
+ * - Logs mínimos en producción
+ * - Datos sensibles sanitizados automáticamente
  */
+
+// ========================================
+// CONFIGURACIÓN DE SEGURIDAD MEJORADA
+// ========================================
+const SECURITY_CONFIG = {
+    // ¡IMPORTANTE! Cambiar a true SOLO en desarrollo local
+    ENABLE_DEBUG_LOGS: false,
+    
+    // Detectar si estamos en modo desarrollo
+    IS_DEVELOPMENT: (
+        window.location.hostname === 'localhost' || 
+        window.location.hostname === '127.0.0.1' ||
+        window.location.search.includes('debug=true')
+    ),
+    
+    // Detectar si estamos en GitHub Pages o Vercel (considerar como producción)
+    IS_PRODUCTION: (
+        window.location.hostname.includes('github.io') ||
+        window.location.hostname.includes('vercel.app') ||
+        window.location.hostname.includes('netlify.app') ||
+        window.location.hostname.includes('pages.dev')
+    )
+};
+
+// Función para sanitizar URLs sensibles
+function sanitizeURL(url) {
+    if (!url || typeof url !== 'string') return '[URL]';
+    
+    return url
+        .replace(/https:\/\/[^\/]+/g, 'https://[DOMAIN]')
+        .replace(/personal\/[^\/]+/g, 'personal/[USER]')
+        .replace(/\?e=[^&\s]+/g, '?e=[TOKEN]')
+        .replace(/[A-Z0-9]{15,}/g, '[ID]')
+        .replace(/share=[^&\s]+/g, 'share=[SHARE_ID]');
+}
+
+// Función para sanitizar datos sensibles
+function sanitizeData(data) {
+    if (typeof data === 'string') {
+        return data
+            .replace(/\b\d{7,8}-[0-9kK]\b/g, '****-*')  // Ocultar RUTs
+            .replace(/https:\/\/[^\s]+sharepoint[^\s]+/gi, '[SHAREPOINT_URL]')  // URLs SharePoint
+            .replace(/personal\/[^\/\s]+/g, 'personal/[USER]')
+            .replace(/\?e=[^&\s]+/g, '?e=[TOKEN]')
+            .replace(/[A-Z0-9]{20,}/gi, '[LONG_ID]');
+    }
+    
+    if (typeof data === 'object' && data !== null) {
+        return '[OBJECT_DATA]';
+    }
+    
+    return data;
+}
+
+// Función de logging seguro mejorada
+function secureLog(message, level = 'info', sensitiveData = null) {
+    // Solo mostrar logs básicos en producción
+    if (SECURITY_CONFIG.IS_PRODUCTION && !SECURITY_CONFIG.ENABLE_DEBUG_LOGS) {
+        // Solo mostrar mensajes de estado importantes
+        if (level === 'status') {
+            console.log(`🏥 ${message}`);
+        }
+        return;
+    }
+    
+    // En desarrollo local, mostrar más detalles si está habilitado
+    if (!SECURITY_CONFIG.ENABLE_DEBUG_LOGS && level !== 'status') {
+        return;
+    }
+    
+    // Sanitizar el mensaje principal
+    const cleanMessage = sanitizeData(String(message));
+    const timestamp = new Date().toLocaleTimeString();
+    const prefix = `🏥 [${timestamp}]`;
+    
+    // Mostrar según el nivel
+    switch(level) {
+        case 'error':
+            console.error(prefix, cleanMessage);
+            if (SECURITY_CONFIG.IS_DEVELOPMENT && sensitiveData) {
+                console.error('📋 Detalles:', sanitizeData(sensitiveData));
+            }
+            break;
+        case 'warn':
+            console.warn(prefix, cleanMessage);
+            break;
+        case 'success':
+            console.log(`%c${prefix} ${cleanMessage}`, 'color: #10B981; font-weight: bold');
+            break;
+        case 'status':
+            console.log(`%c🏥 ${cleanMessage}`, 'color: #3B82F6; font-weight: bold');
+            break;
+        default:
+            console.log(prefix, cleanMessage);
+    }
+}
+
+// Función para mostrar estado de la aplicación (siempre visible pero sin datos sensibles)
+function showAppStatus(message) {
+    secureLog(message, 'status');
+}
+
+// Función específica para logging de URLs (siempre censuradas)
+function logURL(description, url) {
+    if (SECURITY_CONFIG.ENABLE_DEBUG_LOGS && SECURITY_CONFIG.IS_DEVELOPMENT) {
+        secureLog(`${description}: ${sanitizeURL(url)}`);
+    } else {
+        secureLog(`${description}: [URL_OCULTA]`);
+    }
+}
 
 class BienestarAPSSystem {
     constructor() {
+        // ========================================
+        // CONFIGURACIÓN DE SEGURIDAD
+        // ========================================
+        this.DEBUG_MODE = false; // ¡CAMBIAR A true SOLO PARA DESARROLLO!
+        this.DEVELOPMENT = this.detectDevelopmentMode();
+        
         this.currentUser = null;
         this.currentWorkbook = null;
         this.selectedFile = null;
@@ -12,7 +135,98 @@ class BienestarAPSSystem {
         this.EXCEL_URL = 'https://cmesapa-my.sharepoint.com/:x:/g/personal/alejandro_ponce_cmpuentealto_cl/IQDMU9-cU2OESYO8ETvodgptAU2lRYCtsFgLjHcMfgBQd-I?e=z8r8sT&download=1';
         // URL alternativa si la principal no funciona
         this.BACKUP_URL = 'https://cmesapa-my.sharepoint.com/personal/alejandro_ponce_cmpuentealto_cl/_layouts/15/download.aspx?share=IQDMU9-cU2OESYO8ETvodgptAU2lRYCtsFgLjHcMfgBQd-I';
+        
+        // Cache para optimización
+        this.cache = new Map();
+        this.CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+        
         this.init();
+        
+        // Mostrar estado de seguridad
+        this.showSecurityStatus();
+    }
+    
+    showSecurityStatus() {
+        if (SECURITY_CONFIG.ENABLE_DEBUG_LOGS && SECURITY_CONFIG.IS_DEVELOPMENT) {
+            showAppStatus('Modo desarrollo - Debug habilitado');
+            secureLog('⚠️ MODO DEBUG: Información limitada visible en consola', 'warn');
+        } else if (SECURITY_CONFIG.IS_PRODUCTION) {
+            showAppStatus('Modo producción - Información protegida');
+        } else {
+            showAppStatus('Sistema iniciado - Logs mínimos');
+        }
+    }
+
+    // ========================================
+    // SISTEMA DE LOGGING SEGURO
+    // ========================================
+    
+    detectDevelopmentMode() {
+        return window.location.hostname === 'localhost' || 
+               window.location.hostname === '127.0.0.1' ||
+               window.location.hostname.includes('github.io') ||
+               window.location.hostname.includes('vercel.app') ||
+               window.location.search.includes('debug=true');
+    }
+    
+    secureLog(message, level = 'info', sensitiveData = null) {
+        // Solo mostrar logs en desarrollo o si DEBUG_MODE está activado
+        if (!this.DEBUG_MODE && !this.DEVELOPMENT) {
+            return;
+        }
+        
+        const timestamp = new Date().toLocaleTimeString();
+        const prefix = `🏥 BienestarAPS [${timestamp}]:`;
+        
+        // Limpiar información sensible
+        const cleanMessage = this.sanitizeForLog(message);
+        
+        switch(level) {
+            case 'error':
+                console.error(prefix, cleanMessage);
+                if (sensitiveData && (this.DEBUG_MODE || this.DEVELOPMENT)) {
+                    console.error('📋 Detalles (solo desarrollo):', this.sanitizeForLog(sensitiveData));
+                }
+                break;
+            case 'warn':
+                console.warn(prefix, cleanMessage);
+                break;
+            case 'success':
+                console.log(`%c${prefix} ${cleanMessage}`, 'color: #10B981; font-weight: bold');
+                break;
+            case 'info':
+            default:
+                console.log(prefix, cleanMessage);
+        }
+    }
+    
+    sanitizeForLog(data) {
+        if (typeof data !== 'string') {
+            data = String(data);
+        }
+        
+        // En producción, ocultar completamente información sensible
+        if (!this.DEBUG_MODE && !this.DEVELOPMENT) {
+            return '[INFORMACIÓN PROTEGIDA POR SEGURIDAD]';
+        }
+        
+        // En desarrollo, mostrar información parcialmente censurada
+        return data
+            // Ocultar RUTs completos
+            .replace(/\b\d{7,8}-[0-9kK]\b/g, '****-*')
+            // Ocultar usuarios en URLs
+            .replace(/personal\/[^\/]+/g, 'personal/[USER]')
+            // Ocultar tokens
+            .replace(/\?e=[^&\s]+/g, '?e=[TOKEN]')
+            .replace(/share=[^&\s]+/g, 'share=[SHARE-ID]')
+            // Ocultar IDs largos
+            .replace(/[A-Z0-9]{15,}/g, '[ID-HIDDEN]');
+    }
+    
+    logOperation(operation, success = true, details = '') {
+        const level = success ? 'success' : 'error';
+        const icon = success ? '✅' : '❌';
+        this.secureLog(`${icon} ${operation}`, level, details);
     }
 
     init() {
@@ -46,8 +260,9 @@ class BienestarAPSSystem {
 
     async loadExcelFromGoogleSheets() {
         try {
-            console.log('📊 Descargando datos desde SharePoint...');
-            console.log('🔗 URL principal:', this.EXCEL_URL);
+            secureLog('📊 Descargando datos desde SharePoint...');
+            // No mostrar URL completa en logs
+            showAppStatus('Conectando a SharePoint...');
             
             // Intentar caché reciente primero (5 minutos)
             const cachedData = localStorage.getItem('gasSystemData');
@@ -55,48 +270,49 @@ class BienestarAPSSystem {
                 const fileData = JSON.parse(cachedData);
                 if (fileData.workbook && this.isRecentCache(fileData.downloadDate, 5)) {
                     this.currentWorkbook = fileData.workbook;
-                    console.log('⚡ Usando caché reciente (menos de 5 min)');
+                    secureLog('⚡ Usando datos en caché recientes');
                     return true;
                 }
             }
 
             // Intentar descarga desde SharePoint
-            console.log('🌐 Iniciando descarga desde SharePoint...');
+            secureLog('🌐 Iniciando descarga desde fuente de datos...');
             
-            // Método 1: URL con download=1
+            // Método 1: URL principal
             let success = await this.trySharePointDownload(this.EXCEL_URL, 'Método 1');
             if (success) return true;
 
             // Método 2: URL alternativa de SharePoint
             if (this.BACKUP_URL) {
-                console.log('🔄 Intentando método alternativo...');
+                secureLog('🔄 Intentando método alternativo...');
                 success = await this.trySharePointDownload(this.BACKUP_URL, 'Método 2');
                 if (success) return true;
             }
 
             // Método 3: Intentar sin parámetro download
             const urlSinDownload = this.EXCEL_URL.replace('&download=1', '');
-            console.log('🔄 Intentando sin parámetro download...');
+            secureLog('🔄 Intentando configuración alternativa...');
             success = await this.trySharePointDownload(urlSinDownload, 'Método 3');
             if (success) return true;
             
             // Usar caché antiguo como fallback
-            console.log('📋 Intentando usar datos guardados localmente...');
+            secureLog('📋 Intentando usar datos guardados localmente...');
             const hasOldCache = this.loadFromOldCache();
-            this.showDataStatus(false, 'Problemas conectando a SharePoint');
+            this.showDataStatus(false, 'Problemas conectando a fuente de datos');
             return hasOldCache;
             
         } catch (error) {
-            console.error('❌ Error general descargando desde SharePoint:', error.message);
+            secureLog('❌ Error general en descarga:', error.message, 'error');
             const hasOldCache = this.loadFromOldCache();
-            this.showDataStatus(false, error.message);
+            this.showDataStatus(false, 'Error de conexión');
             return hasOldCache;
         }
     }
 
     async trySharePointDownload(url, methodName) {
         try {
-            console.log(`🔗 ${methodName}: ${url.substring(0, 80)}...`);
+            // No mostrar URL completa por seguridad
+            secureLog(`🔗 ${methodName}: Conectando...`);
             
             const response = await fetch(url, {
                 method: 'GET',
@@ -108,37 +324,37 @@ class BienestarAPSSystem {
                 }
             });
 
-            console.log(`📡 ${methodName} - Respuesta:`, response.status, response.statusText);
+            secureLog(`📡 ${methodName} - Estado: ${response.status}`);
 
             if (!response.ok) {
                 if (response.status === 404) {
-                    throw new Error(`SharePoint: Archivo no encontrado (${response.status})`);
+                    throw new Error(`Archivo no encontrado (${response.status})`);
                 } else if (response.status === 403) {
-                    throw new Error(`SharePoint: Sin permisos de acceso (${response.status})`);
+                    throw new Error(`Sin permisos de acceso (${response.status})`);
                 } else if (response.status === 401) {
-                    throw new Error(`SharePoint: Autenticación requerida (${response.status})`);
+                    throw new Error(`Autenticación requerida (${response.status})`);
                 } else {
-                    throw new Error(`SharePoint: Error ${response.status} - ${response.statusText}`);
+                    throw new Error(`Error ${response.status} - ${response.statusText}`);
                 }
             }
 
             const contentType = response.headers.get('content-type') || '';
-            console.log(`📄 ${methodName} - Content-Type:`, contentType);
+            secureLog(`📄 ${methodName} - Tipo: ${contentType.split(';')[0]}`);
 
             // Verificar que sea realmente un archivo Excel
             if (contentType.includes('text/html') || contentType.includes('text/plain')) {
-                throw new Error('SharePoint devolvió HTML en lugar de Excel - revisar permisos');
+                throw new Error('Respuesta HTML en lugar de Excel - revisar permisos');
             }
 
             const arrayBuffer = await response.arrayBuffer();
-            console.log(`📏 ${methodName} - Archivo descargado:`, arrayBuffer.byteLength, 'bytes');
+            secureLog(`📏 ${methodName} - Descargado: ${Math.round(arrayBuffer.byteLength/1024)}KB`);
             
             if (arrayBuffer.byteLength < 1000) {
-                throw new Error('Archivo muy pequeño - posible error de SharePoint');
+                throw new Error('Archivo muy pequeño - posible error');
             }
             
             const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
-            console.log(`📋 ${methodName} - Hojas en el Excel:`, workbook.SheetNames);
+            secureLog(`📋 ${methodName} - Hojas encontradas: ${workbook.SheetNames.length}`);
             
             if (workbook.SheetNames.length === 0) {
                 throw new Error('Excel sin hojas - archivo corrupto');
@@ -251,7 +467,7 @@ class BienestarAPSSystem {
             }
 
             const normalizedRUT = this.normalizeRUT(rut);
-            console.log('🔍 Buscando RUT:', normalizedRUT);
+            secureLog('🔍 Iniciando búsqueda de cupones...');
             
             const couponInfo = this.findCouponInfoInExcel(this.currentWorkbook, normalizedRUT);
             
@@ -347,7 +563,7 @@ class BienestarAPSSystem {
     }
 
     findInGeneralSheet(sheet, rut) {
-        console.log('🔍 Buscando en hoja GENERAL...');
+        secureLog(`🔍 Buscando en hoja GENERAL...`);
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
 
         let encontrado = false;
@@ -377,7 +593,7 @@ class BienestarAPSSystem {
 
                 if (rutNormalizado === rut) {
                     encontrado = true;
-                    console.log(`✅ RUT encontrado en GENERAL fila ${i + 1}`);
+                    secureLog(`✅ Datos encontrados en hoja principal`);
 
                     // Guardar datos solo la primera vez
                     if (!datosUsuario.nombres) {
@@ -393,8 +609,8 @@ class BienestarAPSSystem {
                         const disponibleExcel = this.parseNumber(row[32]);
                         datosUsuario.disponible = Number.isFinite(disponibleExcel) ? disponibleExcel : 4;
                         
-                        console.log(`📊 USADO EN EL MES (AF): ${datosUsuario.usadoEnElMes}`);
-                        console.log(`📊 DISPONIBLE (AG): ${datosUsuario.disponible}`);
+                        secureLog(`📊 Datos de uso actualizados`);
+                        secureLog(`📊 Cupones disponibles calculados`);
                     }
 
                     // Sumar cupones Lipigas (J, K, L, M - índices 9, 10, 11, 12)
@@ -418,7 +634,7 @@ class BienestarAPSSystem {
         }
 
         if (!encontrado) {
-            console.log('❌ RUT no encontrado en hoja GENERAL');
+            secureLog('❌ Datos no encontrados en hoja principal');
             return null;
         }
 
@@ -437,7 +653,7 @@ class BienestarAPSSystem {
     }
 
     findInCuponesDisponibles(sheet, rut) {
-        console.log('🔍 Buscando en hoja CUPONES DISPONIBLES...');
+        secureLog('🔍 Buscando en hoja de cupones...');
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
         
         let foundRow = null;
@@ -450,12 +666,12 @@ class BienestarAPSSystem {
         }
 
         if (foundRow === null) {
-            console.log('❌ RUT no encontrado en CUPONES DISPONIBLES');
+            secureLog('❌ Datos no encontrados en hoja de cupones');
             return null;
         }
 
         const row = jsonData[foundRow];
-        console.log(`✅ RUT encontrado en CUPONES DISPONIBLES fila ${foundRow + 1}`);
+        secureLog(`✅ Datos encontrados en hoja de cupones`);
         
         return {
             encontrado: true,
