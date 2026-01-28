@@ -263,10 +263,6 @@ class BienestarAPSSystem {
 
             // Intentar descarga desde SharePoint
             secureLog('🌐 Iniciando descarga desde fuente de datos...');
-            
-            // Método 1: URL principal
-            let success = await this.trySharePointDownload(this.EXCEL_URL, 'Método 1');
-            if (success) return true;
 
             // Método 2: URL alternativa de SharePoint
             if (this.BACKUP_URL) {
