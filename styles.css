@@ -1621,6 +1621,7 @@ body {
 /* Estilos base para compras generales */
 .compras-generales {
     grid-column: 1 / -1; /* Ocupa todo el ancho disponible */
+    margin-top: 3rem !important; /* Separación superior generosa */
 }
 
 /* Grid de compras generales - siempre 3 columnas centradas */
@@ -1647,6 +1648,10 @@ body {
 
 /* Responsive para compras generales */
 @media (max-width: 768px) {
+    .compras-generales {
+        margin-top: 2.5rem !important; /* Espaciado reducido en tablet */
+    }
+    
     .compras-generales-grid,
     .compras-generales > div:last-child {
         gap: 1.2rem;
@@ -1680,6 +1685,11 @@ body {
 }
 
 @media (max-width: 480px) {
+    .compras-generales {
+        margin-top: 2rem !important; /* Espaciado más compacto en móvil */
+        padding: 1.5rem !important;
+    }
+    
     /* En móvil, mantener 3 columnas pero más compactas */
     .compras-generales-grid,
     .compras-generales > div:last-child {
@@ -1720,15 +1730,13 @@ body {
     .compras-generales .total-compras {
         font-size: 1.6rem !important;
     }
-    
-    /* Container principal más compacto */
-    .compras-generales {
-        padding: 1.5rem !important;
-        margin-top: 1.5rem !important;
-    }
 }
 
 @media (max-width: 360px) {
+    .compras-generales {
+        margin-top: 1.5rem !important; /* Espaciado muy compacto en móviles pequeños */
+    }
+    
     /* Móviles muy pequeños - layout ultra-compacto pero manteniendo 3 columnas */
     .compras-generales-grid,
     .compras-generales > div:last-child {
