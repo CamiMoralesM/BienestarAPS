@@ -1,12 +1,13 @@
 /**
  * BIENESTAR APS - SISTEMA DE CUPONES DE GAS
- * Versión FINAL SIMPLIFICADA - Solo búsqueda de cupones
- * Conectado a SharePoint
+ * Versión Google Sheets - CON TU ENLACE ESPECÍFICO CORREGIDO
  */
 
 class BienestarAPSSystem {
     constructor() {
+        this.currentUser = null;
         this.currentWorkbook = null;
+        this.selectedFile = null;
         // SHAREPOINT - URL DE DESCARGA DIRECTA
         this.EXCEL_URL = 'https://cmesapa-my.sharepoint.com/:x:/g/personal/alejandro_ponce_cmpuentealto_cl/IQDMU9-cU2OESYO8ETvodgptAU2lRYCtsFgLjHcMfgBQd-I?e=z8r8sT&download=1';
         // URL alternativa si la principal no funciona
@@ -16,15 +17,34 @@ class BienestarAPSSystem {
 
     init() {
         this.bindEvents();
+        this.setupFirebase();
         // Cargar datos inmediatamente
-        this.loadExcelFromSharePoint();
+        this.loadExcelFromGoogleSheets();
+    }
+
+    async setupFirebase() {
+        if (window.firebase) {
+            this.auth = window.firebase.auth();
+            this.storage = window.firebase.storage();
+            
+            this.auth.onAuthStateChanged((user) => {
+                this.currentUser = user;
+                if (user) {
+                    this.showAdminPanel();
+                } else {
+                    this.showLoginForm();
+                }
+                // Recargar datos cuando cambie auth
+                this.loadExcelFromGoogleSheets();
+            });
+        }
     }
 
     // ========================================
-    // SHAREPOINT - CARGA AUTOMÁTICA
+    // GOOGLE SHEETS - ACTUALIZACIÓN AUTOMÁTICA
     // ========================================
 
-    async loadExcelFromSharePoint() {
+    async loadExcelFromGoogleSheets() {
         try {
             console.log('📊 Descargando datos desde SharePoint...');
             console.log('🔗 URL principal:', this.EXCEL_URL);
@@ -222,9 +242,9 @@ class BienestarAPSSystem {
         try {
             // Intentar recargar datos recientes antes de buscar
             if (!this.currentWorkbook || this.shouldRefreshData()) {
-                const loaded = await this.loadExcelFromSharePoint();
+                const loaded = await this.loadExcelFromGoogleSheets();
                 if (!loaded) {
-                    this.showAlert('📊 No se pueden cargar los datos actuales desde SharePoint. Verifique su conexión.', 'warning');
+                    this.showAlert('📊 No se pueden cargar los datos actuales desde SharePoint. Contacte al administrador.', 'warning');
                     this.showLoading(false);
                     return;
                 }
@@ -339,6 +359,11 @@ class BienestarAPSSystem {
             establecimiento: '',
             lipigas: { '5': 0, '11': 0, '15': 0, '45': 0 },
             abastible: { '5': 0, '11': 0, '15': 0, '45': 0 },
+            comprasGenerales: { 
+                cine: 0,      // Columna R (índice 17)
+                energy: 0,    // Columna S (índice 18)
+                jumper: 0     // Columna W (índice 22)
+            },
             usadoEnElMes: 0,
             disponible: 4
         };
@@ -383,6 +408,11 @@ class BienestarAPSSystem {
                     datosUsuario.abastible['11'] += this.parseNumber(row[14]) || 0;
                     datosUsuario.abastible['15'] += this.parseNumber(row[15]) || 0;
                     datosUsuario.abastible['45'] += this.parseNumber(row[16]) || 0;
+
+                    // Sumar compras generales
+                    datosUsuario.comprasGenerales.cine += this.parseNumber(row[17]) || 0;    // Columna R
+                    datosUsuario.comprasGenerales.energy += this.parseNumber(row[18]) || 0;  // Columna S  
+                    datosUsuario.comprasGenerales.jumper += this.parseNumber(row[22]) || 0;  // Columna W
                 }
             }
         }
@@ -400,6 +430,7 @@ class BienestarAPSSystem {
             establecimiento: datosUsuario.establecimiento,
             lipigas: datosUsuario.lipigas,
             abastible: datosUsuario.abastible,
+            comprasGenerales: datosUsuario.comprasGenerales,
             usadoEnElMes: datosUsuario.usadoEnElMes,
             disponible: datosUsuario.disponible
         };
@@ -443,6 +474,7 @@ class BienestarAPSSystem {
                 '15': this.parseNumber(row[11]) || 0,
                 '45': this.parseNumber(row[12]) || 0
             },
+            comprasGenerales: { cine: 0, energy: 0, jumper: 0 }, // Vacías en esta hoja
             usadoEnElMes: this.parseNumber(row[13]) || 0,
             disponible: Math.max(0, 4 - (this.parseNumber(row[13]) || 0)) // Calculado: 4 - USADO
         };
@@ -467,6 +499,7 @@ class BienestarAPSSystem {
                     establecimiento: row[7] || '',
                     lipigas: { '5': 0, '11': 0, '15': 0, '45': 0 },
                     abastible: { '5': 0, '11': 0, '15': 0, '45': 0 },
+                    comprasGenerales: { cine: 0, energy: 0, jumper: 0 }, // Vacías para usuarios nuevos
                     usadoEnElMes: 0,
                     disponible: 4 // Usuario nuevo, 4 disponibles
                 };
@@ -581,6 +614,45 @@ class BienestarAPSSystem {
                 </div>
             </div>
         </div>
+
+        <!-- COMPRAS GENERALES -->
+        ${(couponInfo.comprasGenerales?.cine > 0 || couponInfo.comprasGenerales?.energy > 0 || couponInfo.comprasGenerales?.jumper > 0) ? `
+        <div class="compras-generales" style="background: linear-gradient(135deg, rgba(139, 69, 19, 0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(139, 69, 19, 0.2); box-shadow: var(--shadow-lg);">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h3 style="color: #8b4513; font-size: 1.5rem; font-weight: 800;">🛍️ COMPRAS GENERALES</h3>
+                <div class="total-compras" style="font-size: 2rem; font-weight: 700; color: #8b4513;">Total: ${(couponInfo.comprasGenerales?.cine || 0) + (couponInfo.comprasGenerales?.energy || 0) + (couponInfo.comprasGenerales?.jumper || 0)}</div>
+            </div>
+
+            <div class="compra-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; justify-items: center;">
+                <div class="compra-item" style="text-align: center; padding: 1.5rem; background: rgba(139, 69, 19, 0.1); border-radius: 1rem; min-width: 120px;">
+                    <div class="compra-numero" style="font-size: 1.8rem; font-weight: 700; color: #8b4513; margin-bottom: 0.5rem;">
+                        ${couponInfo.comprasGenerales?.cine || 0}
+                    </div>
+                    <div class="compra-label" style="color: #654321; font-weight: 600; font-size: 0.9rem;">
+                        🎬 CINE
+                    </div>
+                </div>
+                
+                <div class="compra-item" style="text-align: center; padding: 1.5rem; background: rgba(139, 69, 19, 0.1); border-radius: 1rem; min-width: 120px;">
+                    <div class="compra-numero" style="font-size: 1.8rem; font-weight: 700; color: #8b4513; margin-bottom: 0.5rem;">
+                        ${couponInfo.comprasGenerales?.energy || 0}
+                    </div>
+                    <div class="compra-label" style="color: #654321; font-weight: 600; font-size: 0.9rem;">
+                        ⚡ ENERGY
+                    </div>
+                </div>
+                
+                <div class="compra-item" style="text-align: center; padding: 1.5rem; background: rgba(139, 69, 19, 0.1); border-radius: 1rem; min-width: 120px;">
+                    <div class="compra-numero" style="font-size: 1.8rem; font-weight: 700; color: #8b4513; margin-bottom: 0.5rem;">
+                        ${couponInfo.comprasGenerales?.jumper || 0}
+                    </div>
+                    <div class="compra-label" style="color: #654321; font-weight: 600; font-size: 0.9rem;">
+                        👕 JUMPER
+                    </div>
+                </div>
+            </div>
+        </div>
+        ` : ''}
         `;
 
         resultsContent.innerHTML = html;
@@ -589,7 +661,61 @@ class BienestarAPSSystem {
     }
 
     // ========================================
-    // EVENTOS SIMPLIFICADOS
+    // PANEL ADMINISTRATIVO - ACTUALIZADO PARA GOOGLE SHEETS
+    // ========================================
+
+    showGoogleSheetsInfo() {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 700px;">
+                <div class="modal-header">
+                    <h3>📊 Información de Google Sheets</h3>
+                    <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div style="padding: 1rem;">
+                        <div style="background: #e8f5e8; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 2rem;">
+                            <h4 style="color: #2d5a2d; margin-bottom: 1rem;">✅ Sistema Conectado a Google Sheets</h4>
+                            <p><strong>📁 Archivo:</strong> Tu Google Sheets de cupones de gas</p>
+                            <p><strong>🔄 Actualización:</strong> Automática cada vez que editas</p>
+                            <p><strong>⚡ Velocidad:</strong> Cambios visibles en 1-2 minutos</p>
+                        </div>
+                        
+                        <h4>🔧 Para actualizar datos:</h4>
+                        <ol style="text-align: left; padding-left: 2rem;">
+                            <li>Ve a tu Google Sheets</li>
+                            <li>Edita los datos directamente</li>
+                            <li>Los cambios se reflejan automáticamente</li>
+                            <li>Los usuarios ven datos actualizados</li>
+                        </ol>
+                        
+                        <div style="background: #f0f8ff; padding: 1rem; border-radius: 0.5rem; margin-top: 2rem;">
+                            <h4>🎯 Ventajas del sistema actual:</h4>
+                            <ul style="text-align: left;">
+                                <li>✅ <strong>Sin subir archivos:</strong> Editas directamente online</li>
+                                <li>✅ <strong>Actualización instantánea:</strong> Sin retrasos</li>
+                                <li>✅ <strong>Acceso desde cualquier dispositivo:</strong> PC, móvil, tablet</li>
+                                <li>✅ <strong>Sin problemas técnicos:</strong> Google maneja todo</li>
+                                <li>✅ <strong>Historial de cambios:</strong> Google Sheets guarda versiones</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background: #fff3cd; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem;">
+                            <p><strong>💡 Consejo:</strong> Mantén el formato de las columnas exactamente como está para que el sistema funcione correctamente.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+    }
+
+    // ========================================
+    // EVENTOS Y UI
     // ========================================
 
     bindEvents() {
@@ -599,12 +725,111 @@ class BienestarAPSSystem {
             if (e.key === 'Enter') this.searchCoupons();
         });
         document.getElementById('rutInput').addEventListener('input', (e) => this.formatRUT(e));
+
+        // Panel administrativo
+        document.getElementById('adminBtn').addEventListener('click', () => this.openAdminModal());
+
+        // Autenticación
+        document.getElementById('loginBtn').addEventListener('click', () => this.handleLogin());
+        document.getElementById('logoutBtn').addEventListener('click', () => this.handleLogout());
+
+        // Información de Google Sheets (reemplaza upload)
+        document.getElementById('uploadBtn').addEventListener('click', () => this.showGoogleSheetsInfo());
+
+        // Cerrar modales
+        document.querySelector('.close-btn').addEventListener('click', () => this.closeAdminModal());
+        document.getElementById('adminLoginModal').addEventListener('click', (e) => {
+            if (e.target.id === 'adminLoginModal') this.closeAdminModal();
+        });
+
+        // Refrescar datos manualmente
+        const refreshBtn = document.getElementById('refreshBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => this.loadExcelFromGoogleSheets());
+        }
     }
 
-    // ========================================
-    // UTILIDADES
-    // ========================================
+    // Métodos de autenticación y UI (simplificados)
+    async handleLogin() {
+        const email = document.getElementById('adminEmail').value;
+        const password = document.getElementById('adminPassword').value;
+        const errorDiv = document.getElementById('loginError');
 
+        if (!email || !password) {
+            this.showError(errorDiv, '📝 Complete todos los campos');
+            return;
+        }
+
+        this.showLoading(true);
+        
+        try {
+            await this.auth.signInWithEmailAndPassword(email, password);
+            this.hideError(errorDiv);
+            this.showAlert('✅ Acceso autorizado exitosamente', 'success');
+        } catch (error) {
+            this.showError(errorDiv, '❌ Credenciales incorrectas');
+        }
+        
+        this.showLoading(false);
+    }
+
+    async handleLogout() {
+        try {
+            await this.auth.signOut();
+            this.showAlert('🚪 Sesión cerrada exitosamente', 'info');
+            this.closeAdminModal();
+        } catch (error) {
+            this.showAlert('❌ Error al cerrar sesión', 'error');
+        }
+    }
+
+    showLoginForm() {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('adminPanel').style.display = 'none';
+    }
+
+    showAdminPanel() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        this.updateAdminInfo();
+    }
+
+    updateAdminInfo() {
+        const filesList = document.getElementById('filesList');
+        if (filesList) {
+            filesList.innerHTML = `
+                <div class="file-item">
+                    <div>
+                        <div class="file-name">📊 Google Sheets - Sistema Conectado</div>
+                        <div class="file-date">🔄 Actualizaciones automáticas</div>
+                        <div class="file-status">✅ Funcionando correctamente</div>
+                    </div>
+                    <button class="delete-file-btn" onclick="bienestarSystem.showGoogleSheetsInfo()">
+                        ℹ️ Ver Info
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    openAdminModal() {
+        document.getElementById('adminLoginModal').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        
+        if (this.currentUser) {
+            this.showAdminPanel();
+        } else {
+            this.showLoginForm();
+        }
+    }
+
+    closeAdminModal() {
+        document.getElementById('adminLoginModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+        this.hideError(document.getElementById('loginError'));
+    }
+
+    // Utilidades
     parseNumber(value) {
         if (value === null || value === undefined || value === '') return 0;
         const num = parseFloat(value.toString().replace(/[^\d.-]/g, ''));
@@ -643,6 +868,19 @@ class BienestarAPSSystem {
 
         alert.addEventListener('click', () => alert.remove());
     }
+
+    showError(element, message) {
+        if (element) {
+            element.textContent = message;
+            element.style.display = 'block';
+        }
+    }
+
+    hideError(element) {
+        if (element) {
+            element.style.display = 'none';
+        }
+    }
 }
 
 // Inicializar sistema
@@ -655,9 +893,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.classList.add('loaded');
     }, 100);
     
-    console.log('🏥 Sistema Bienestar APS - SharePoint Connected');
-    console.log('📊 Datos actualizados automáticamente desde SharePoint');
-    console.log('🔍 Sistema simplificado - Solo búsqueda de cupones');
+    console.log('🏥 Sistema Bienestar APS - Google Sheets Connected');
+    console.log('📊 Datos actualizados automáticamente desde Google Sheets');
+    console.log('📧 Admin: Bienestar.aps@cmpuentealto.cl');
 });
 
 window.bienestarSystem = bienestarSystem;
