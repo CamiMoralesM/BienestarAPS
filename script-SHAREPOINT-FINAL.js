@@ -617,37 +617,104 @@ class BienestarAPSSystem {
 
         <!-- COMPRAS GENERALES -->
         ${(couponInfo.comprasGenerales?.cine > 0 || couponInfo.comprasGenerales?.energy > 0 || couponInfo.comprasGenerales?.jumper > 0) ? `
-        <div class="compras-generales" style="background: linear-gradient(135deg, rgba(139, 69, 19, 0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(139, 69, 19, 0.2); box-shadow: var(--shadow-lg); grid-column: 1 / -1; margin-top: 3rem;">
-            <div style="text-align: center; margin-bottom: 2rem;">
-                <h3 style="color: #8b4513; font-size: 1.5rem; font-weight: 800;">🛍️ COMPRAS GENERALES</h3>
-                <div class="total-compras" style="font-size: 2rem; font-weight: 700; color: #8b4513;">Total: ${(couponInfo.comprasGenerales?.cine || 0) + (couponInfo.comprasGenerales?.energy || 0) + (couponInfo.comprasGenerales?.jumper || 0)}</div>
-            </div>
+        <div class="compras-generales-container" style="grid-column: 1 / -1; margin-top: 3rem;">
+            <div class="compras-generales-card" style="
+                background: linear-gradient(135deg, rgba(139, 69, 19, 0.05), var(--white)); 
+                padding: 2rem; 
+                border-radius: 1.5rem; 
+                border: 2px solid rgba(139, 69, 19, 0.2); 
+                box-shadow: var(--shadow-lg);
+                max-width: 800px;
+                margin: 0 auto;
+                width: 100%;
+            ">
+                <!-- Header -->
+                <div class="compras-generales-header" style="text-align: center; margin-bottom: 2rem;">
+                    <h3 style="color: #8b4513; font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">🛍️ COMPRAS GENERALES</h3>
+                    <div class="total-compras" style="font-size: 2rem; font-weight: 700; color: #8b4513;">
+                        Total: ${(couponInfo.comprasGenerales?.cine || 0) + (couponInfo.comprasGenerales?.energy || 0) + (couponInfo.comprasGenerales?.jumper || 0)}
+                    </div>
+                </div>
 
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; max-width: 600px; margin: 0 auto;">
-                <div style="text-align: center; padding: 2rem 1rem; background: rgba(139, 69, 19, 0.1); border-radius: 1rem; aspect-ratio: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 120px;">
-                    <div style="font-size: 2.5rem; font-weight: 700; color: #8b4513; margin-bottom: 0.8rem; line-height: 1;">
-                        ${couponInfo.comprasGenerales?.cine || 0}
+                <!-- Grid Responsive -->
+                <div class="compras-grid" style="
+                    display: grid; 
+                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+                    gap: 1.5rem; 
+                    max-width: 600px; 
+                    margin: 0 auto;
+                    justify-items: center;
+                ">
+                    <!-- CINE -->
+                    <div class="compra-item cine-item" style="
+                        text-align: center; 
+                        padding: 1.8rem 1rem; 
+                        background: rgba(139, 69, 19, 0.1); 
+                        border-radius: 1rem; 
+                        width: 100%;
+                        max-width: 180px;
+                        aspect-ratio: 1;
+                        display: flex; 
+                        flex-direction: column; 
+                        justify-content: center; 
+                        align-items: center;
+                        transition: transform 0.2s ease, box-shadow 0.2s ease;
+                        cursor: default;
+                    ">
+                        <div class="compra-numero" style="font-size: 2.5rem; font-weight: 700; color: #8b4513; margin-bottom: 0.8rem; line-height: 1;">
+                            ${couponInfo.comprasGenerales?.cine || 0}
+                        </div>
+                        <div class="compra-label" style="color: #654321; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.3rem; justify-content: center;">
+                            <span style="font-size: 1.1rem;">🎬</span> CINE
+                        </div>
                     </div>
-                    <div style="color: #654321; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.3rem; justify-content: center;">
-                        <span style="font-size: 1.1rem;">🎬</span> CINE
+                    
+                    <!-- ENERGY -->
+                    <div class="compra-item energy-item" style="
+                        text-align: center; 
+                        padding: 1.8rem 1rem; 
+                        background: rgba(139, 69, 19, 0.1); 
+                        border-radius: 1rem; 
+                        width: 100%;
+                        max-width: 180px;
+                        aspect-ratio: 1;
+                        display: flex; 
+                        flex-direction: column; 
+                        justify-content: center; 
+                        align-items: center;
+                        transition: transform 0.2s ease, box-shadow 0.2s ease;
+                        cursor: default;
+                    ">
+                        <div class="compra-numero" style="font-size: 2.5rem; font-weight: 700; color: #8b4513; margin-bottom: 0.8rem; line-height: 1;">
+                            ${couponInfo.comprasGenerales?.energy || 0}
+                        </div>
+                        <div class="compra-label" style="color: #654321; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.3rem; justify-content: center;">
+                            <span style="font-size: 1.1rem;">⚡</span> ENERGY
+                        </div>
                     </div>
-                </div>
-                
-                <div style="text-align: center; padding: 2rem 1rem; background: rgba(139, 69, 19, 0.1); border-radius: 1rem; aspect-ratio: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 120px;">
-                    <div style="font-size: 2.5rem; font-weight: 700; color: #8b4513; margin-bottom: 0.8rem; line-height: 1;">
-                        ${couponInfo.comprasGenerales?.energy || 0}
-                    </div>
-                    <div style="color: #654321; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.3rem; justify-content: center;">
-                        <span style="font-size: 1.1rem;">⚡</span> ENERGY
-                    </div>
-                </div>
-                
-                <div style="text-align: center; padding: 2rem 1rem; background: rgba(139, 69, 19, 0.1); border-radius: 1rem; aspect-ratio: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 120px;">
-                    <div style="font-size: 2.5rem; font-weight: 700; color: #8b4513; margin-bottom: 0.8rem; line-height: 1;">
-                        ${couponInfo.comprasGenerales?.jumper || 0}
-                    </div>
-                    <div style="color: #654321; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.3rem; justify-content: center;">
-                        <span style="font-size: 1.1rem;">🤸‍♂️</span> JUMPER
+                    
+                    <!-- JUMPER -->
+                    <div class="compra-item jumper-item" style="
+                        text-align: center; 
+                        padding: 1.8rem 1rem; 
+                        background: rgba(139, 69, 19, 0.1); 
+                        border-radius: 1rem; 
+                        width: 100%;
+                        max-width: 180px;
+                        aspect-ratio: 1;
+                        display: flex; 
+                        flex-direction: column; 
+                        justify-content: center; 
+                        align-items: center;
+                        transition: transform 0.2s ease, box-shadow 0.2s ease;
+                        cursor: default;
+                    ">
+                        <div class="compra-numero" style="font-size: 2.5rem; font-weight: 700; color: #8b4513; margin-bottom: 0.8rem; line-height: 1;">
+                            ${couponInfo.comprasGenerales?.jumper || 0}
+                        </div>
+                        <div class="compra-label" style="color: #654321; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.3rem; justify-content: center;">
+                            <span style="font-size: 1.1rem;">🤸‍♂️</span> JUMPER
+                        </div>
                     </div>
                 </div>
             </div>
