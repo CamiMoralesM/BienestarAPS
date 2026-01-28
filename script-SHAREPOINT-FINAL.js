@@ -1,18 +1,4 @@
-/**
- * BIENESTAR APS - SISTEMA DE CUPONES DE GAS
- * Versión con Seguridad Mejorada - URLs y Datos Sensibles Protegidos
- * 
- * CARACTERÍSTICAS DE SEGURIDAD:
- * - URLs de SharePoint censuradas en logs
- * - Información de RUTs oculta en consola
- * - Modo producción vs desarrollo
- * - Logs mínimos en producción
- * - Datos sensibles sanitizados automáticamente
- */
 
-// ========================================
-// CONFIGURACIÓN DE SEGURIDAD MEJORADA
-// ========================================
 const SECURITY_CONFIG = {
     // ¡IMPORTANTE! Cambiar a true SOLO en desarrollo local
     ENABLE_DEBUG_LOGS: false,
