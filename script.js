@@ -1,6 +1,3 @@
-// ============================================
-// VERSIÓN CON OFUSCACIÓN AVANZADA
-// ============================================
 const SECURITY_CONFIG = {
     ENABLE_DEBUG_LOGS: false,
     IS_DEVELOPMENT: (
@@ -15,7 +12,6 @@ const SECURITY_CONFIG = {
     )
 };
 
-// Función silenciosa
 function secureLog(message, level = 'info', sensitiveData = null) {
     if (SECURITY_CONFIG.IS_PRODUCTION) {
         return;
@@ -58,7 +54,6 @@ class BienestarAPSSystem {
         this.currentWorkbook = null;
         this.selectedFile = null;
         
-        // URLs ofuscadas con Base64
         this._k1 = 'aHR0cHM6Ly9jbWVzYXBhLW15LnNoYXJlcG9pbnQuY29tLzp4Oi9nL3BlcnNvbmFsL2FsZWphbmRyb19wb25jZV9jbXB1ZW50ZWFsdG9fY2wvSVFETVU5LWNVMU9FU1lPOEVUdm9kZ3B0QVUybFJZQ3RzRmdMakhjTWZnQlFkLUk/ZT16OHI4VCZkb3dubG9hZD0x';
         this._k2 = 'aHR0cHM6Ly9jbWVzYXBhLW15LnNoYXJlcG9pbnQuY29tL3BlcnNvbmFsL2FsZWphbmRyb19wb25jZV9jbXB1ZW50ZWFsdG9fY2wvX2xheW91dHMvMTUvZG93bmxvYWQuYXNweD9zaGFyZT1JUURNVTktY1UyT0VTWU84RVR2b2RncHRBVTJsUllDdHNGZ0xqSGNNZmdCUWQtSQ==';
         
@@ -69,7 +64,6 @@ class BienestarAPSSystem {
         this.showSecurityStatus();
     }
     
-    // Decodificación de URLs ofuscadas
     _d(encoded) {
         try {
             return atob(encoded);
@@ -78,7 +72,6 @@ class BienestarAPSSystem {
         }
     }
     
-    // Obtener URLs decodificadas
     get EXCEL_URL() {
         return this._d(this._k1);
     }
