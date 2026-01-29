@@ -1,9 +1,11 @@
+// ============================================
+// VERSIÓN CON OFUSCACIÓN AVANZADA
+// ============================================
 const SECURITY_CONFIG = {
     ENABLE_DEBUG_LOGS: false,
     IS_DEVELOPMENT: (
         window.location.hostname === 'localhost' || 
-        window.location.hostname === '127.0.0.1' ||
-        window.location.search.includes('debug=true')
+        window.location.hostname === '127.0.0.1'
     ),
     IS_PRODUCTION: (
         window.location.hostname.includes('github.io') ||
@@ -13,74 +15,38 @@ const SECURITY_CONFIG = {
     )
 };
 
-function sanitizeURL(url) {
-    if (!url || typeof url !== 'string') return '[URL]';
-    return url
-        .replace(/https:\/\/[^\/]+/g, 'https://[DOMAIN]')
-        .replace(/personal\/[^\/]+/g, 'personal/[USER]')
-        .replace(/\?e=[^&\s]+/g, '?e=[TOKEN]')
-        .replace(/[A-Z0-9]{15,}/g, '[ID]')
-        .replace(/share=[^&\s]+/g, 'share=[SHARE_ID]');
-}
-
-function sanitizeData(data) {
-    if (typeof data === 'string') {
-        return data
-            .replace(/\b\d{7,8}-[0-9kK]\b/g, '****-*')
-            .replace(/https:\/\/[^\s]+sharepoint[^\s]+/gi, '[SHAREPOINT_URL]')
-            .replace(/personal\/[^\/\s]+/g, 'personal/[USER]')
-            .replace(/\?e=[^&\s]+/g, '?e=[TOKEN]')
-            .replace(/[A-Z0-9]{20,}/gi, '[LONG_ID]');
-    }
-    if (typeof data === 'object' && data !== null) {
-        return '[OBJECT_DATA]';
-    }
-    return data;
-}
-
+// Función silenciosa
 function secureLog(message, level = 'info', sensitiveData = null) {
-    if (SECURITY_CONFIG.IS_PRODUCTION && !SECURITY_CONFIG.ENABLE_DEBUG_LOGS) {
-        if (level === 'status') {
-            console.log(`🏥 ${message}`);
-        }
+    if (SECURITY_CONFIG.IS_PRODUCTION) {
         return;
     }
-    if (!SECURITY_CONFIG.ENABLE_DEBUG_LOGS && level !== 'status') {
+    if (!SECURITY_CONFIG.ENABLE_DEBUG_LOGS) {
         return;
     }
-    const cleanMessage = sanitizeData(String(message));
     const timestamp = new Date().toLocaleTimeString();
     const prefix = `🏥 [${timestamp}]`;
+    
     switch(level) {
         case 'error':
-            console.error(prefix, cleanMessage);
-            if (SECURITY_CONFIG.IS_DEVELOPMENT && sensitiveData) {
-                console.error('📋 Detalles:', sanitizeData(sensitiveData));
-            }
+            console.error(prefix, '[ERROR]');
             break;
         case 'warn':
-            console.warn(prefix, cleanMessage);
+            console.warn(prefix, '[ADVERTENCIA]');
             break;
         case 'success':
-            console.log(`%c${prefix} ${cleanMessage}`, 'color: #10B981; font-weight: bold');
-            break;
-        case 'status':
-            console.log(`%c🏥 ${cleanMessage}`, 'color: #3B82F6; font-weight: bold');
+            console.log(`%c${prefix} [OK]`, 'color: #10B981; font-weight: bold');
             break;
         default:
-            console.log(prefix, cleanMessage);
+            console.log(prefix, '[INFO]');
     }
 }
 
 function showAppStatus(message) {
-    secureLog(message, 'status');
-}
-
-function logURL(description, url) {
-    if (SECURITY_CONFIG.ENABLE_DEBUG_LOGS && SECURITY_CONFIG.IS_DEVELOPMENT) {
-        secureLog(`${description}: ${sanitizeURL(url)}`);
-    } else {
-        secureLog(`${description}: [URL_OCULTA]`);
+    if (SECURITY_CONFIG.IS_PRODUCTION) {
+        return;
+    }
+    if (SECURITY_CONFIG.ENABLE_DEBUG_LOGS) {
+        console.log(`🏥 ${message}`);
     }
 }
 
@@ -91,93 +57,58 @@ class BienestarAPSSystem {
         this.currentUser = null;
         this.currentWorkbook = null;
         this.selectedFile = null;
-        this.EXCEL_URL = 'https://cmesapa-my.sharepoint.com/:x:/g/personal/alejandro_ponce_cmpuentealto_cl/IQDMU9-cU2OESYO8ETvodgptAU2lRYCtsFgLjHcMfgBQd-I?e=z8r8sT&download=1';
-        this.BACKUP_URL = 'https://cmesapa-my.sharepoint.com/personal/alejandro_ponce_cmpuentealto_cl/_layouts/15/download.aspx?share=IQDMU9-cU2OESYO8ETvodgptAU2lRYCtsFgLjHcMfgBQd-I';
+        
+        // URLs ofuscadas con Base64
+        this._k1 = 'aHR0cHM6Ly9jbWVzYXBhLW15LnNoYXJlcG9pbnQuY29tLzp4Oi9nL3BlcnNvbmFsL2FsZWphbmRyb19wb25jZV9jbXB1ZW50ZWFsdG9fY2wvSVFETVU5LWNVMU9FU1lPOEVUdm9kZ3B0QVUybFJZQ3RzRmdMakhjTWZnQlFkLUk/ZT16OHI4VCZkb3dubG9hZD0x';
+        this._k2 = 'aHR0cHM6Ly9jbWVzYXBhLW15LnNoYXJlcG9pbnQuY29tL3BlcnNvbmFsL2FsZWphbmRyb19wb25jZV9jbXB1ZW50ZWFsdG9fY2wvX2xheW91dHMvMTUvZG93bmxvYWQuYXNweD9zaGFyZT1JUURNVTktY1UyT0VTWU84RVR2b2RncHRBVTJsUllDdHNGZ0xqSGNNZmdCUWQtSQ==';
+        
         this.cache = new Map();
         this.CACHE_DURATION = 5 * 60 * 1000;
+        
         this.init();
         this.showSecurityStatus();
     }
     
+    // Decodificación de URLs ofuscadas
+    _d(encoded) {
+        try {
+            return atob(encoded);
+        } catch (e) {
+            return '';
+        }
+    }
+    
+    // Obtener URLs decodificadas
+    get EXCEL_URL() {
+        return this._d(this._k1);
+    }
+    
+    get BACKUP_URL() {
+        return this._d(this._k2);
+    }
+    
     showSecurityStatus() {
+        if (SECURITY_CONFIG.IS_PRODUCTION) {
+            return;
+        }
         if (SECURITY_CONFIG.ENABLE_DEBUG_LOGS && SECURITY_CONFIG.IS_DEVELOPMENT) {
-            showAppStatus('Modo desarrollo - Debug habilitado');
-            secureLog('⚠️ MODO DEBUG: Información limitada visible en consola', 'warn');
-        } else if (SECURITY_CONFIG.IS_PRODUCTION) {
-            showAppStatus('Modo producción - Información protegida');
+            showAppStatus('Modo desarrollo');
         } else {
-            showAppStatus('Sistema iniciado - Logs mínimos');
+            showAppStatus('Sistema iniciado');
         }
     }
 
     detectDevelopmentMode() {
         return window.location.hostname === 'localhost' || 
                window.location.hostname === '127.0.0.1' ||
-               window.location.port === '3000' ||
-               window.location.search.includes('debug=true');
-    }
-
-    sanitizeForLog(data) {
-        if (!data) return data;
-        const sensitiveFields = ['rut', 'nombres', 'apellidos', 'establecimiento'];
-        const sanitized = { ...data };
-        sensitiveFields.forEach(field => {
-            if (sanitized[field]) {
-                sanitized[field] = '[PROTECTED]';
-            }
-        });
-        return sanitized;
-    }
-
-    secureLog(message, level = 'info', sensitiveData = null) {
-        const shouldLog = this.DEVELOPMENT && this.DEBUG_MODE;
-        if (!shouldLog) {
-            if (level === 'error') {
-                const cleanMessage = this.sanitizeSensitiveData(String(message));
-                console.error(`🏥 Error: ${cleanMessage}`);
-            }
-            return;
-        }
-        const cleanMessage = this.sanitizeSensitiveData(String(message));
-        const timestamp = new Date().toLocaleTimeString();
-        const prefix = `🏥 [${timestamp}]`;
-        
-        switch(level) {
-            case 'error':
-                console.error(prefix, cleanMessage);
-                if (this.DEBUG_MODE && sensitiveData) {
-                    console.error('📋 Detalles (solo desarrollo):', this.sanitizeForLog(sensitiveData));
-                }
-                break;
-            case 'warn':
-                console.warn(prefix, cleanMessage);
-                break;
-            case 'success':
-                console.log(`%c${prefix} ${cleanMessage}`, 'color: #10B981; font-weight: bold');
-                break;
-            case 'info':
-            default:
-                console.log(prefix, cleanMessage);
-                break;
-        }
-    }
-
-    sanitizeSensitiveData(message) {
-        return String(message)
-            .replace(/\b\d{7,8}-[0-9kK]\b/g, '****-*')
-            .replace(/sharepoint\.com[^\s]+/gi, 'sharepoint.com/[PROTECTED]')
-            .replace(/personal\/[^\/\s]+/g, 'personal/[USER]')
-            .replace(/\?e=[^&\s]+/g, '?e=[TOKEN]')
-            .replace(/[A-Z0-9]{15,}/g, '[ID]');
+               window.location.port === '3000';
     }
 
     init() {
-        this.secureLog('🚀 Iniciando Sistema Bienestar APS', 'info');
         this.loadExcelFromGoogleSheets();
         
         const searchBtn = document.getElementById('searchBtn');
         const rutInput = document.getElementById('rutInput');
-        const adminBtn = document.getElementById('adminBtn');
 
         if (searchBtn) {
             searchBtn.addEventListener('click', () => this.searchCouponsByRUT());
@@ -196,52 +127,44 @@ class BienestarAPSSystem {
 
     async loadExcelFromGoogleSheets() {
         try {
-            secureLog('📊 Descargando datos desde SharePoint...');
-            showAppStatus('Conectando a SharePoint...');
-            
             const cachedData = localStorage.getItem('gasSystemData');
             if (cachedData) {
-                const fileData = JSON.parse(cachedData);
-                if (fileData.workbook && this.isRecentCache(fileData.downloadDate, 5)) {
-                    this.currentWorkbook = fileData.workbook;
-                    secureLog('⚡ Usando datos en caché recientes');
-                    return true;
+                try {
+                    const fileData = JSON.parse(cachedData);
+                    if (fileData.workbook && this.isRecentCache(fileData.downloadDate, 5)) {
+                        this.currentWorkbook = fileData.workbook;
+                        return true;
+                    }
+                } catch (e) {
+                    // Ignorar
                 }
             }
 
-            secureLog('🌐 Iniciando descarga desde fuente de datos...');
-            
-            let success = await this.trySharePointDownload(this.EXCEL_URL, 'Método 1');
+            let success = await this.trySharePointDownload(this.EXCEL_URL, 1);
             if (success) return true;
 
             if (this.BACKUP_URL) {
-                secureLog('🔄 Intentando método alternativo...');
-                success = await this.trySharePointDownload(this.BACKUP_URL, 'Método 2');
+                success = await this.trySharePointDownload(this.BACKUP_URL, 2);
                 if (success) return true;
             }
 
             const urlSinDownload = this.EXCEL_URL.replace('&download=1', '');
-            secureLog('🔄 Intentando configuración alternativa...');
-            success = await this.trySharePointDownload(urlSinDownload, 'Método 3');
+            success = await this.trySharePointDownload(urlSinDownload, 3);
             if (success) return true;
             
-            secureLog('📋 Intentando usar datos guardados localmente...');
             const hasOldCache = this.loadFromOldCache();
-            this.showDataStatus(false, 'Problemas conectando a fuente de datos');
+            this.showDataStatus(false, 'Problemas de conexión');
             return hasOldCache;
             
         } catch (error) {
-            secureLog('❌ Error general en descarga:', error.message, 'error');
             const hasOldCache = this.loadFromOldCache();
             this.showDataStatus(false, 'Error de conexión');
             return hasOldCache;
         }
     }
 
-    async trySharePointDownload(url, methodName) {
+    async trySharePointDownload(url, methodNumber) {
         try {
-            secureLog(`🔗 ${methodName}: Conectando...`);
-            
             const response = await fetch(url, {
                 method: 'GET',
                 mode: 'cors',
@@ -252,45 +175,31 @@ class BienestarAPSSystem {
                 }
             });
 
-            secureLog(`📡 ${methodName} - Estado: ${response.status}`);
-
             if (!response.ok) {
-                if (response.status === 404) {
-                    throw new Error(`Archivo no encontrado (${response.status})`);
-                } else if (response.status === 403) {
-                    throw new Error(`Sin permisos de acceso (${response.status})`);
-                } else if (response.status === 401) {
-                    throw new Error(`Autenticación requerida (${response.status})`);
-                } else {
-                    throw new Error(`Error ${response.status} - ${response.statusText}`);
-                }
+                return false;
             }
 
             const contentType = response.headers.get('content-type') || '';
-            secureLog(`📄 ${methodName} - Tipo: ${contentType.split(';')[0]}`);
 
             if (contentType.includes('text/html') || contentType.includes('text/plain')) {
-                throw new Error('Respuesta HTML en lugar de Excel - revisar permisos');
+                return false;
             }
 
             const arrayBuffer = await response.arrayBuffer();
-            secureLog(`📏 ${methodName} - Descargado: ${Math.round(arrayBuffer.byteLength/1024)}KB`);
             
             if (arrayBuffer.byteLength < 1000) {
-                throw new Error('Archivo muy pequeño - posible error');
+                return false;
             }
             
             const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
-            secureLog(`📋 ${methodName} - Hojas encontradas: ${workbook.SheetNames.length}`);
             
             this.currentWorkbook = workbook;
-            
             this.cacheWorkbook(workbook);
-            this.showDataStatus(true, `Conectado exitosamente con ${methodName}`);
+            this.showDataStatus(true, `Datos cargados correctamente`);
+            
             return true;
 
         } catch (error) {
-            secureLog(`❌ ${methodName} falló: ${error.message}`, 'error');
             return false;
         }
     }
@@ -310,9 +219,8 @@ class BienestarAPSSystem {
                 downloadDate: new Date().toISOString()
             };
             localStorage.setItem('gasSystemData', JSON.stringify(cacheData));
-            secureLog('💾 Datos guardados en caché local');
         } catch (error) {
-            secureLog('⚠️ No se pudo guardar caché: ' + error.message, 'warn');
+            // Ignorar
         }
     }
 
@@ -323,12 +231,11 @@ class BienestarAPSSystem {
                 const fileData = JSON.parse(cachedData);
                 if (fileData.workbook) {
                     this.currentWorkbook = fileData.workbook;
-                    secureLog('📋 Usando datos guardados localmente');
                     return true;
                 }
             }
         } catch (error) {
-            secureLog('❌ Error cargando caché local: ' + error.message, 'error');
+            // Ignorar
         }
         return false;
     }
@@ -338,7 +245,7 @@ class BienestarAPSSystem {
         if (statusElement) {
             statusElement.innerHTML = connected ? 
                 `<span style="color: #10B981;">✅ ${message}</span>` : 
-                `<span style="color: #EF4444;">❌ ${message}</span>`;
+                `<span style="color: #EF4444;">⚠️ ${message}</span>`;
         }
     }
 
@@ -366,14 +273,10 @@ class BienestarAPSSystem {
             return;
         }
 
-        secureLog('🔍 Iniciando búsqueda de cupones...');
-
         try {
             const couponInfo = this.findCouponInfoInExcel(this.currentWorkbook, formattedRUT);
             this.displaySimplifiedResults(couponInfo);
-            
         } catch (error) {
-            secureLog('❌ Error en búsqueda: ' + error.message, 'error');
             alert('Error buscando información. Intente nuevamente.');
         }
     }
@@ -426,26 +329,20 @@ class BienestarAPSSystem {
         const generalSheet = workbook.Sheets['GENERAL'];
         if (generalSheet) {
             const result = this.findInGeneralSheet(generalSheet, rut);
-            if (result) {
-                return result;
-            }
+            if (result) return result;
         }
 
         const cuponesSheet = workbook.Sheets['CUPONES DISPONIBLES'];
         if (cuponesSheet) {
             const result = this.findInCuponesDisponibles(cuponesSheet, rut);
-            if (result) {
-                return result;
-            }
+            if (result) return result;
         }
 
         return this.findUserInBaseDatos(workbook, rut);
     }
 
     findInGeneralSheet(sheet, rut) {
-        secureLog('🔍 Buscando en hoja GENERAL...');
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
-
         let encontrado = false;
 
         let datosUsuario = {
@@ -455,39 +352,25 @@ class BienestarAPSSystem {
             establecimiento: '',
             lipigas: { '5': 0, '11': 0, '15': 0, '45': 0 },
             abastible: { '5': 0, '11': 0, '15': 0, '45': 0 },
-            comprasGenerales: { 
-                cine: 0,      
-                energy: 0,    
-                jumper: 0     
-            },
+            comprasGenerales: { cine: 0, energy: 0, jumper: 0 },
             usadoEnElMes: 0,
             disponible: 4
         };
 
         for (let i = 5; i < jsonData.length; i++) {
             const row = jsonData[i];
-
             if (row && row[4]) {
                 const rutEnFila = String(row[4]).trim();
                 const rutNormalizado = this.normalizeRUT(rutEnFila);
 
                 if (rutNormalizado === rut) {
                     encontrado = true;
-                    secureLog(`✅ Datos encontrados en hoja principal`);
-
                     if (!datosUsuario.nombres) {
                         datosUsuario.nombres = row[5] || '';
                         datosUsuario.apellidos = row[6] || '';
                         datosUsuario.establecimiento = row[7] || '';
-
-                        const usadoExcel = this.parseNumber(row[31]);
-                        datosUsuario.usadoEnElMes = Number.isFinite(usadoExcel) ? usadoExcel : 0;
-
-                        const disponibleExcel = this.parseNumber(row[32]);
-                        datosUsuario.disponible = Number.isFinite(disponibleExcel) ? disponibleExcel : 4;
-                        
-                        secureLog(`📊 Datos de uso actualizados`);
-                        secureLog(`📊 Cupones disponibles calculados`);
+                        datosUsuario.usadoEnElMes = this.parseNumber(row[31]);
+                        datosUsuario.disponible = this.parseNumber(row[32]);
                     }
 
                     datosUsuario.lipigas['5'] += this.parseNumber(row[9]) || 0;
@@ -507,10 +390,7 @@ class BienestarAPSSystem {
             }
         }
 
-        if (!encontrado) {
-            secureLog('❌ Datos no encontrados en hoja principal');
-            return null;
-        }
+        if (!encontrado) return null;
 
         return {
             encontrado: true,
@@ -527,7 +407,6 @@ class BienestarAPSSystem {
     }
 
     findInCuponesDisponibles(sheet, rut) {
-        secureLog('🔍 Buscando en hoja de cupones...');
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
         
         let foundRow = null;
@@ -539,13 +418,9 @@ class BienestarAPSSystem {
             }
         }
 
-        if (foundRow === null) {
-            secureLog('❌ Datos no encontrados en hoja de cupones');
-            return null;
-        }
+        if (foundRow === null) return null;
 
         const row = jsonData[foundRow];
-        secureLog(`✅ Datos encontrados en hoja de cupones`);
         
         return {
             encontrado: true,
@@ -572,9 +447,7 @@ class BienestarAPSSystem {
 
     findUserInBaseDatos(workbook, rut) {
         const sheet = workbook.Sheets['BASE DE DATOS'];
-        if (!sheet) {
-            return null;
-        }
+        if (!sheet) return null;
 
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
         
@@ -595,7 +468,6 @@ class BienestarAPSSystem {
                 };
             }
         }
-
         return null;
     }
 
@@ -657,22 +529,18 @@ class BienestarAPSSystem {
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
-
             <div style="background: linear-gradient(135deg, rgba(14,165,233,0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(14,165,233,0.2); box-shadow: var(--shadow-lg);">
                 <div style="text-align: center; margin-bottom: 2rem;">
                     <h3 style="color: #0ea5e9; font-size: 1.5rem; font-weight: 800;">⛽ LIPIGAS</h3>
                     <div style="font-size: 2rem; font-weight: 700; color: #0ea5e9;">Total Usado: ${lipigasUsados}</div>
                 </div>
-
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
                     ${['5','11','15','45'].map(kg => `
                         <div style="text-align: center; padding: 1.5rem; background: rgba(14,165,233,0.1); border-radius: 1rem;">
                             <div style="font-size: 1.8rem; font-weight: 700; color: #0ea5e9; margin-bottom: 0.5rem;">
                                 ${couponInfo.lipigas?.[kg] ?? 0}
                             </div>
-                            <div style="color: #0369a1; font-weight: 600; font-size: 0.9rem;">
-                                ${kg} KG
-                            </div>
+                            <div style="color: #0369a1; font-weight: 600; font-size: 0.9rem;">${kg} KG</div>
                         </div>
                     `).join('')}
                 </div>
@@ -683,16 +551,13 @@ class BienestarAPSSystem {
                     <h3 style="color: #f97316; font-size: 1.5rem; font-weight: 800;">🔥 ABASTIBLE</h3>
                     <div style="font-size: 2rem; font-weight: 700; color: #f97316;">Total Usado: ${abastibleUsados}</div>
                 </div>
-
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
                     ${['5','11','15','45'].map(kg => `
                         <div style="text-align: center; padding: 1.5rem; background: rgba(249,115,22,0.1); border-radius: 1rem;">
                             <div style="font-size: 1.8rem; font-weight: 700; color: #f97316; margin-bottom: 0.5rem;">
                                 ${couponInfo.abastible?.[kg] ?? 0}
                             </div>
-                            <div style="color: #c2410c; font-weight: 600; font-size: 0.9rem;">
-                                ${kg} KG
-                            </div>
+                            <div style="color: #c2410c; font-weight: 600; font-size: 0.9rem;">${kg} KG</div>
                         </div>
                     `).join('')}
                 </div>
@@ -701,98 +566,25 @@ class BienestarAPSSystem {
 
         ${(couponInfo.comprasGenerales?.cine > 0 || couponInfo.comprasGenerales?.energy > 0 || couponInfo.comprasGenerales?.jumper > 0) ? `
         <div class="compras-generales-container" style="grid-column: 1 / -1; margin-top: 3rem;">
-            <div class="compras-generales-card" style="
-                background: linear-gradient(135deg, rgba(139, 69, 19, 0.05), var(--white)); 
-                padding: 2rem; 
-                border-radius: 1.5rem; 
-                border: 2px solid rgba(139, 69, 19, 0.2); 
-                box-shadow: var(--shadow-lg);
-                max-width: 800px;
-                margin: 0 auto;
-                width: 100%;
-            ">
+            <div class="compras-generales-card" style="background: linear-gradient(135deg, rgba(139, 69, 19, 0.05), var(--white)); padding: 2rem; border-radius: 1.5rem; border: 2px solid rgba(139, 69, 19, 0.2); box-shadow: var(--shadow-lg); max-width: 800px; margin: 0 auto; width: 100%;">
                 <div class="compras-generales-header" style="text-align: center; margin-bottom: 2rem;">
                     <h3 style="color: #8b4513; font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">🛍️ COMPRAS GENERALES</h3>
                     <div class="total-compras" style="font-size: 2rem; font-weight: 700; color: #8b4513;">
                         Total: ${(couponInfo.comprasGenerales?.cine || 0) + (couponInfo.comprasGenerales?.energy || 0) + (couponInfo.comprasGenerales?.jumper || 0)}
                     </div>
                 </div>
-
-                <div class="compras-grid" style="
-                    display: grid; 
-                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
-                    gap: 1.5rem; 
-                    max-width: 600px; 
-                    margin: 0 auto;
-                    justify-items: center;
-                ">
-                    <div class="compra-item cine-item" style="
-                        text-align: center; 
-                        padding: 1.8rem 1rem; 
-                        background: rgba(139, 69, 19, 0.1); 
-                        border-radius: 1rem; 
-                        width: 100%;
-                        max-width: 180px;
-                        aspect-ratio: 1;
-                        display: flex; 
-                        flex-direction: column; 
-                        justify-content: center; 
-                        align-items: center;
-                        transition: transform 0.2s ease, box-shadow 0.2s ease;
-                        cursor: default;
-                    ">
-                        <div class="compra-numero" style="font-size: 2.5rem; font-weight: 700; color: #8b4513; margin-bottom: 0.8rem; line-height: 1;">
-                            ${couponInfo.comprasGenerales?.cine || 0}
-                        </div>
-                        <div class="compra-label" style="color: #654321; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.3rem; justify-content: center;">
-                            <span style="font-size: 1.1rem;">🎬</span> CINE
-                        </div>
+                <div class="compras-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem; max-width: 600px; margin: 0 auto; justify-items: center;">
+                    <div class="compra-item" style="text-align: center; padding: 1.8rem 1rem; background: rgba(139, 69, 19, 0.1); border-radius: 1rem; width: 100%; max-width: 180px; aspect-ratio: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: #8b4513; margin-bottom: 0.8rem;">${couponInfo.comprasGenerales?.cine || 0}</div>
+                        <div style="color: #654321; font-weight: 600; font-size: 0.9rem;"><span style="font-size: 1.1rem;">🎬</span> CINE</div>
                     </div>
-                    
-                    <div class="compra-item energy-item" style="
-                        text-align: center; 
-                        padding: 1.8rem 1rem; 
-                        background: rgba(139, 69, 19, 0.1); 
-                        border-radius: 1rem; 
-                        width: 100%;
-                        max-width: 180px;
-                        aspect-ratio: 1;
-                        display: flex; 
-                        flex-direction: column; 
-                        justify-content: center; 
-                        align-items: center;
-                        transition: transform 0.2s ease, box-shadow 0.2s ease;
-                        cursor: default;
-                    ">
-                        <div class="compra-numero" style="font-size: 2.5rem; font-weight: 700; color: #8b4513; margin-bottom: 0.8rem; line-height: 1;">
-                            ${couponInfo.comprasGenerales?.energy || 0}
-                        </div>
-                        <div class="compra-label" style="color: #654321; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.3rem; justify-content: center;">
-                            <span style="font-size: 1.1rem;">⚡</span> ENERGY
-                        </div>
+                    <div class="compra-item" style="text-align: center; padding: 1.8rem 1rem; background: rgba(139, 69, 19, 0.1); border-radius: 1rem; width: 100%; max-width: 180px; aspect-ratio: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: #8b4513; margin-bottom: 0.8rem;">${couponInfo.comprasGenerales?.energy || 0}</div>
+                        <div style="color: #654321; font-weight: 600; font-size: 0.9rem;"><span style="font-size: 1.1rem;">⚡</span> ENERGY</div>
                     </div>
-                    
-                    <div class="compra-item jumper-item" style="
-                        text-align: center; 
-                        padding: 1.8rem 1rem; 
-                        background: rgba(139, 69, 19, 0.1); 
-                        border-radius: 1rem; 
-                        width: 100%;
-                        max-width: 180px;
-                        aspect-ratio: 1;
-                        display: flex; 
-                        flex-direction: column; 
-                        justify-content: center; 
-                        align-items: center;
-                        transition: transform 0.2s ease, box-shadow 0.2s ease;
-                        cursor: default;
-                    ">
-                        <div class="compra-numero" style="font-size: 2.5rem; font-weight: 700; color: #8b4513; margin-bottom: 0.8rem; line-height: 1;">
-                            ${couponInfo.comprasGenerales?.jumper || 0}
-                        </div>
-                        <div class="compra-label" style="color: #654321; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.3rem; justify-content: center;">
-                            <span style="font-size: 1.1rem;">🤸‍♂️</span> JUMPER
-                        </div>
+                    <div class="compra-item" style="text-align: center; padding: 1.8rem 1rem; background: rgba(139, 69, 19, 0.1); border-radius: 1rem; width: 100%; max-width: 180px; aspect-ratio: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: #8b4513; margin-bottom: 0.8rem;">${couponInfo.comprasGenerales?.jumper || 0}</div>
+                        <div style="color: #654321; font-weight: 600; font-size: 0.9rem;"><span style="font-size: 1.1rem;">🤸‍♂️</span> JUMPER</div>
                     </div>
                 </div>
             </div>
@@ -819,5 +611,14 @@ class BienestarAPSSystem {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    if (SECURITY_CONFIG.IS_PRODUCTION) {
+        console.clear();
+        const noop = function() {};
+        console.log = noop;
+        console.info = noop;
+        console.warn = noop;
+        console.error = noop;
+    }
+    
     window.bienestarSystem = new BienestarAPSSystem();
 });
